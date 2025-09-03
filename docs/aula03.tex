@@ -1,0 +1,3515 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{amsmath,amssymb}
+\usepackage{listings}
+\usepackage{titling}
+\usepackage{graphicx} % <--- adicionar no preâmbulo
+\usepackage{enumitem,booktabs,multirow,array}
+\usepackage{tikz,pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{caption}
+
+\setlength{\parskip}{0.6em}
+\setlength{\parindent}{0pt}
+
+\definecolor{linkcolor}{RGB}{0,70,150}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=linkcolor,
+  urlcolor=linkcolor,
+  citecolor=linkcolor
+}
+
+% Listings (code blocks)
+\lstdefinestyle{mystyle}{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  tabsize=2
+}
+\lstset{style=mystyle}
+
+% Checkbox macro
+\newcommand{\citem}{\item[$\square$]}
+
+\title{Capítulo: Desenvolvimento de um MVP em Python + Streamlit com Estrutura de Software}
+\author{Cayo Felipe Lopes de Oliveira}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Introdução}
+
+O desenvolvimento de um \textbf{MVP (Minimum Viable Product)} é uma prática amplamente utilizada tanto no mercado de tecnologia quanto no ensino de ciência de dados e engenharia de software. A ideia de um MVP é criar uma versão mínima, mas funcional, de um produto, que permita validar conceitos, testar hipóteses e aprender com feedback de forma rápida e econômica.
+
+Neste capítulo, exploraremos como estruturar um MVP de \textbf{chatbot educacional} utilizando Python e o framework \textbf{Streamlit}. O projeto tem como objetivo principal:
+
+\begin{itemize}
+  \item Permitir que o estudante interaja com dados de competições do Kaggle de forma simples e acessível.
+  \item Construir e treinar modelos básicos de regressão e classificação (exemplo: dataset Titanic).
+  \item Responder a perguntas do usuário por meio de um chatbot regrado (sem uso de IA generativa neste estágio).
+  \item Ensinar os fundamentos de \textbf{arquitetura de software não monolítica}, organização de repositórios Git e boas práticas de documentação.
+\end{itemize}
+
+O grande diferencial desta abordagem está em unir \textbf{técnicas de ciência de dados} (exploração de datasets, treino de modelos, avaliação de métricas) com \textbf{engenharia de software aplicada} (arquitetura em camadas, governança de dados, testes automatizados e deploy em nuvem). Dessa forma, os alunos compreendem que ciência de dados não se limita a notebooks isolados, mas sim à construção de aplicações completas e sustentáveis.
+
+---
+
+\subsection{Por que usar Python e Streamlit?}
+
+\begin{itemize}
+  \item \textbf{Python} é a linguagem mais popular em ciência de dados, com bibliotecas robustas como \texttt{pandas}, \texttt{scikit-learn} e \texttt{numpy}.
+  \item \textbf{Streamlit} é uma biblioteca que permite transformar scripts Python em aplicativos interativos com poucas linhas de código. Ideal para prototipagem rápida de dashboards, aplicações de ML e chatbots educacionais.
+  \item A combinação Python + Streamlit permite que estudantes, mesmo sem formação em front-end, construam interfaces acessíveis e publiquem seus modelos.
+\end{itemize}
+
+---
+
+\subsection{O Papel do MVP no Ensino}
+
+Do ponto de vista educacional, construir um MVP ajuda os alunos a:
+
+\begin{enumerate}
+  \item \textbf{Aprender fazendo:} ao invés de apenas consumir teoria, o aluno constrói um produto funcional.
+  \item \textbf{Visualizar resultados:} métricas, gráficos e respostas do chatbot aparecem em tempo real.
+  \item \textbf{Praticar governança de dados:} ao incluir LGPD, DAMA e boas práticas, o estudante entende que ciência de dados deve ser ética e responsável.
+  \item \textbf{Preparar para o mercado:} a estrutura em camadas e a documentação espelham padrões usados em empresas de tecnologia.
+\end{enumerate}
+
+\clearpage
+
+\section{Project Model Canvas (PMC) Adaptado ao Projeto}
+
+Antes de abordarmos os fundamentos técnicos de arquitetura de software, é importante compreender como organizar a visão inicial do projeto por meio de um \textbf{Project Model Canvas (PMC)}. Essa ferramenta auxilia na definição de escopo, objetivos e justificativas de maneira clara e visual, favorecendo tanto a gestão quanto o entendimento da turma.
+
+O PMC tradicionalmente inclui blocos como Objetivo, Justificativa, Produto, Público-alvo e Recursos. Neste curso, adaptaremos o modelo para refletir as especificidades de um projeto de ciência de dados e chatbot educacional. Os blocos escolhidos são:
+
+\begin{enumerate}
+  \item \textbf{Contexto}
+  \item \textbf{Problema a ser Respondido}
+  \item \textbf{Pergunta de Pesquisa}
+  \item \textbf{Solução Proposta}
+  \item \textbf{Desenho de Arquitetura}
+\end{enumerate}
+
+Cada grupo deverá preencher o PMC em forma de quadro (pode ser feito em papel, Miro, Whimsical, ou qualquer ferramenta colaborativa), descrevendo de maneira resumida como será o projeto. A seguir, detalhamos cada um dos blocos.
+
+---
+
+\subsection{Bloco 1: Contexto}
+
+O contexto descreve o \textbf{cenário em que o projeto está inserido}. Trata-se de responder: 
+\textit{por que este tema é relevante?}
+
+Exemplo (Tema Titanic):
+\begin{itemize}
+  \item Dataset amplamente conhecido no Kaggle.
+  \item Permite trabalhar tanto classificação (sobrevivência) quanto regressão (valor das passagens).
+  \item Dados relativamente limpos e acessíveis para estudantes.
+\end{itemize}
+
+Exemplo (Tema E-commerce):
+\begin{itemize}
+  \item Vendas e gastos são questões centrais em qualquer negócio.
+  \item Permite aplicar modelos de previsão de receita.
+  \item Relevância direta com o mercado.
+\end{itemize}
+
+---
+
+\subsection{Bloco 2: Problema a ser Respondido}
+
+O problema é a \textbf{questão central de negócio ou de análise} que o projeto pretende endereçar. É formulado em termos práticos.
+
+Exemplo (Titanic):
+\begin{itemize}
+  \item Qual a probabilidade de um passageiro sobreviver ao naufrágio, dado seu perfil?
+\end{itemize}
+
+Exemplo (Loan Prediction):
+\begin{itemize}
+  \item Como identificar se um cliente terá seu empréstimo aprovado ou não?
+\end{itemize}
+
+Exemplo (Students Performance):
+\begin{itemize}
+  \item Quais fatores mais influenciam o desempenho escolar dos estudantes?
+\end{itemize}
+
+---
+
+\subsection{Bloco 3: Pergunta de Pesquisa}
+
+Diferente do problema, a pergunta é formulada como uma \textbf{questão exploratória}, que guiará a análise. Ela pode estar diretamente conectada ao modelo de machine learning que será construído.
+
+Exemplo (Titanic):
+\begin{itemize}
+  \item Quais variáveis mais influenciam na chance de sobrevivência?
+  \item Qual a acurácia de um modelo simples de regressão logística neste dataset?
+\end{itemize}
+
+Exemplo (Fitbit/Health):
+\begin{itemize}
+  \item Quais hábitos diários estão associados a maior atividade física?
+\end{itemize}
+
+---
+
+\subsection{Bloco 4: Solução Proposta}
+
+Neste bloco, o grupo descreve a \textbf{abordagem técnica e conceitual} que será utilizada. Deve ser breve e objetiva, sem entrar ainda no código.
+
+Exemplo (Titanic):
+\begin{itemize}
+  \item Construir um app em Streamlit.
+  \item Implementar treino de regressão logística e regressão linear.
+  \item Exibir métricas (acurácia, f1, RMSE) e importância das variáveis.
+  \item Permitir interação por chatbot regrado (FAQ sobre métricas e variáveis).
+\end{itemize}
+
+Exemplo (E-commerce):
+\begin{itemize}
+  \item Prever valor de compras futuras usando regressão linear.
+  \item Explicar variáveis que mais impactam no gasto.
+\end{itemize}
+
+---
+
+\subsection{Bloco 5: Desenho de Arquitetura}
+
+Por fim, o PMC deve incluir uma visão simplificada da arquitetura. O objetivo é que o grupo compreenda desde o início como o sistema será estruturado em camadas.
+
+\textbf{Elementos mínimos do desenho:}
+\begin{itemize}
+  \item Interface (Streamlit App).
+  \item Núcleo de Regras de Negócio (funções de dados, preprocessamento, modelos).
+  \item Dados de entrada e saída (datasets, modelos salvos).
+  \item Chatbot regrado (FAQ + métricas).
+\end{itemize}
+
+O diagrama pode ser feito em \textbf{draw.io}, Miro ou até em quadro branco, mas deve mostrar claramente o fluxo:
+\[
+\text{Upload de CSV} \rightarrow \text{Pré-processamento} \rightarrow \text{Treino do Modelo} \rightarrow \text{Métricas e Explicações} \rightarrow \text{Chatbot}
+\]
+
+---
+
+\subsection{Importância do PMC}
+
+Ao preencher o PMC antes de programar, o grupo garante:
+
+\begin{itemize}
+  \item Alinhamento sobre o que será construído.
+  \item Clareza nos objetivos e entregas.
+  \item Visão integrada de negócio + técnica.
+  \item Base para documentação formal (em \texttt{docs/pmc.md}).
+\end{itemize}
+
+O PMC, portanto, é tanto um \textbf{documento de planejamento} quanto uma \textbf{ferramenta pedagógica} que conecta conceitos de gestão de projetos à prática de ciência de dados.
+
+\subsection{Exemplo Prático: PMC do Projeto Titanic}
+
+Para tornar o conceito mais concreto, vejamos como poderia ser o preenchimento de um Project Model Canvas (PMC) para o tema \textbf{Titanic}, usado como exemplo de dataset.
+
+\begin{itemize}
+  \item \textbf{Contexto:}  
+  O naufrágio do Titanic em 1912 resultou em uma das bases de dados mais conhecidas em ciência de dados. O dataset contém informações sobre passageiros (idade, sexo, classe, tarifa, etc.) e o objetivo clássico é prever a sobrevivência.
+
+  \item \textbf{Problema a ser respondido:}  
+  Como variáveis socioeconômicas e demográficas influenciaram as chances de sobrevivência dos passageiros?
+
+  \item \textbf{Pergunta norteadora:}  
+  Quais características mais impactaram na sobrevivência (idade, sexo, classe, tarifa)?  
+  É possível treinar um modelo de aprendizado de máquina simples que faça boas previsões?
+
+  \item \textbf{Solução proposta:}  
+  Construir um chatbot educacional em \textbf{Streamlit} que:  
+  \begin{enumerate}
+    \item Permita upload do arquivo \texttt{train.csv} do Titanic.  
+    \item Treine modelos de regressão logística (classificação da sobrevivência) e regressão linear (predição da tarifa).  
+    \item Mostre métricas de avaliação (acurácia, f1-score, RMSE).  
+    \item Explique a importância das variáveis por meio de coeficientes e odds ratios.  
+    \item Responda perguntas do usuário via um chatbot regrado.  
+  \end{enumerate}
+
+    \item \textbf{Desenho de Arquitetura:}  
+    O sistema será estruturado em camadas:  
+    \begin{enumerate}
+      \item \textbf{Interface (app/)}: Streamlit como front-end para upload, treino e perguntas.  
+      \item \textbf{Core (core/)}: módulos para dados, features, modelos, explicabilidade e chatbot.  
+      \item \textbf{Dados (data/)}: pastas para armazenar arquivos brutos, tratados e modelos treinados.  
+      \item \textbf{Documentação (docs/)}: PMC, arquitetura, governança e testes.  
+    \end{enumerate}
+    
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.95\linewidth]{architecture.png}
+      \caption{Arquitetura do MVP de Chatbot com Streamlit e Python.}
+    \end{figure}
+
+
+  \item \textbf{Resultados esperados:}  
+  \begin{itemize}
+    \item Modelo de classificação com acurácia próxima de 75--80\%.  
+    \item Relatório de métricas e importâncias de variáveis.  
+    \item Deploy em Streamlit Cloud com documentação completa no GitHub.  
+  \end{itemize}
+\end{itemize}
+
+Esse exemplo mostra como o PMC serve de \textbf{mapa inicial}, ligando contexto, problema e solução a uma implementação prática.
+
+
+
+\clearpage
+\section{Fundamentos de Arquitetura de Software}
+
+Um dos principais objetivos deste capítulo é que os alunos entendam por que estamos organizando o projeto em \textbf{camadas de responsabilidade}. Essa é uma prática consagrada em engenharia de software que ajuda a tornar os sistemas mais robustos, reutilizáveis e fáceis de manter.
+
+\subsection{Monólito vs Arquitetura em Camadas}
+
+\begin{itemize}
+  \item \textbf{Arquitetura Monolítica:} todo o código está em um único arquivo ou em uma única pasta sem separação clara de responsabilidades. Funciona para projetos muito pequenos, mas rapidamente se torna caótico.
+  \item \textbf{Arquitetura em Camadas:} o código é organizado em partes distintas, cada uma com um papel bem definido (UI, lógica de negócio, dados, documentação, testes). Isso facilita a colaboração, os testes e a evolução futura do sistema.
+\end{itemize}
+
+\subsection{Por que usar camadas neste projeto?}
+
+Mesmo que estejamos construindo apenas um \textbf{MVP educacional}, separar responsabilidades tem várias vantagens:
+
+\begin{enumerate}
+  \item Ajuda os alunos a pensar de forma modular.
+  \item Permite evoluir do MVP para sistemas mais complexos.
+  \item Facilita testes e manutenção do código.
+  \item Garante que documentação, governança e dados não fiquem misturados.
+\end{enumerate}
+
+\subsection{Analogias para facilitar o entendimento}
+
+\begin{itemize}
+  \item Pense em uma \textbf{cozinha}: temos o balcão (UI), os cozinheiros (lógica de negócio) e a despensa (dados). Cada parte tem uma função específica.
+  \item Pense em um \textbf{time esportivo}: goleiro, defesa, meio-campo e ataque. Cada jogador tem responsabilidade distinta, mas trabalham juntos para o mesmo objetivo.
+\end{itemize}
+
+\subsection{Aplicando ao projeto Kaggle Chatbot}
+
+\begin{itemize}
+  \item A camada \texttt{app/} será o \textbf{balcão} onde o usuário interage (via Streamlit).
+  \item A camada \texttt{core/} será a \textbf{cozinha} onde as receitas (pipelines de ML) são preparadas.
+  \item A pasta \texttt{data/} será a \textbf{despensa}, com os ingredientes (datasets e modelos).
+  \item A pasta \texttt{docs/} é o \textbf{manual de instruções}, garantindo que todos entendam o processo.
+\end{itemize}
+
+\clearpage
+\section{Estrutura de Repositório}
+\begin{lstlisting}[language=bash]
+kaggle-chatbot-mvp/
+├─ app/                               # Interface com o usuário (Streamlit)
+│  ├─ pages/                          # (Opcional) páginas adicionais do Streamlit
+│  └─ main_app.py                     # App principal (UI + orquestração)
+├─ core/                              # Lógica de negócio (camada de aplicação)
+│  ├─ data/
+│  │  ├─ io.py                        # Funções de leitura/gravação de CSV
+│  │  └─ schema.py                    # (Opcional) validações de colunas/tipos
+│  ├─ features/
+│  │  └─ preprocess.py                # Pipeline de imputação/one-hot/escala
+│  ├─ models/
+│  │  ├─ train.py                     # Funções de treino (class./regr.)
+│  │  └─ predict.py                   # Funções de avaliação/predição
+│  ├─ explain/
+│  │  └─ coefficients.py              # Extração de coeficientes/odds/importâncias
+│  └─ chatbot/
+│     ├─ rules.py                     # Chat regrado (FAQ + métricas/importâncias)
+│     └─ generative.py                # (Opcional) Integração com LLM (ChatGPT)
+├─ configs/
+│  ├─ settings.example.toml           # Exemplo de parâmetros (tema, alvo, etc.)
+│  └─ logging.conf                    # Configuração de logging (console)
+├─ data/
+│  ├─ raw/                            # CSVs brutos (não versionar sensíveis)
+│  ├─ processed/                      # CSVs tratados/prontos para modelagem
+│  └─ models/                         # Artefatos do modelo (.pkl) — OK no MVP
+├─ notebooks/
+│  └─ 01_eda_titanic.ipynb            # Exploração inicial (EDA)
+├─ tests/                             # Testes unitários e de integração
+│  ├─ test_data_io.py
+│  ├─ test_preprocess.py
+│  └─ test_models.py
+├─ docs/                              # Documentação (estilo docusaurus em .md)
+│  ├─ README.md                       # Índice/portal da documentação
+│  ├─ pmc.md                          # Project Model Canvas do grupo
+│  ├─ architecture.md                 # Arquitetura + imagem .drawio/.png
+│  ├─ data_model.md                   # Dicionário/DER dos dados
+│  ├─ governance_lgpd.md              # DAMA + LGPD aplicados ao projeto
+│  ├─ testing.md                      # Estratégia e escopo de testes
+│  ├─ deployment.md                   # Guia de deploy (Streamlit Cloud/Render)
+│  └─ images/
+│     └─ architecture.png             # Diagrama exportado do draw.io
+├─ .gitignore
+├─ requirements.txt
+└─ README.md                          # Portal do repositório (links para docs/)
+\end{lstlisting}
+
+\subsection{Descrição detalhada por pasta e arquivos}
+
+\paragraph{1. \texttt{app/} (Aplicação / Interface de Usuário)}
+\begin{itemize}
+  \item \texttt{main\_app.py} --- ponto de entrada do Streamlit.
+  \begin{itemize}
+    \item Faz upload do CSV, configurações (tarefa, \textit{test size}).
+    \item Chama funções de \texttt{core/} para pré-processar, treinar e avaliar.
+    \item Exibe métricas, matriz de confusão (tabela/heatmap) e importâncias.
+    \item Mantém histórico do chat com \texttt{st.session\_state} usando \texttt{st.chat\_message} e \texttt{st.chat\_input}.
+  \end{itemize}
+  \item \texttt{pages/} (opcional) --- páginas extras (ex.: \textit{Sobre}, \textit{Visualizações}, \textit{FAQ}).
+\end{itemize}
+
+\paragraph{2. \texttt{core/} (Núcleo de Regras de Negócio)}
+\textbf{Objetivo:} manter a lógica de domínio independente da camada de UI.
+
+\medskip
+\emph{Subpasta \texttt{data/}}
+\begin{itemize}
+  \item \texttt{io.py} --- funções de entrada/saída:
+  \begin{itemize}
+    \item \texttt{read\_csv\_smart(file\_or\_path)}: detecta separador e carrega CSV.
+    \item \textit{(opcional)} \texttt{save\_csv(df, path)}: serializa dados processados.
+  \end{itemize}
+  \item \texttt{schema.py} (opcional) --- validações simples:
+  \begin{itemize}
+    \item checa colunas obrigatórias (\textit{target}, \textit{features} mínimas);
+    \item checa tipos esperados (\textit{numéricos} vs \textit{categóricos}).
+  \end{itemize}
+\end{itemize}
+
+\emph{Subpasta \texttt{features/}}
+\begin{itemize}
+  \item \texttt{preprocess.py} --- pipeline de \textbf{imputação}, \textbf{one-hot} e \textbf{escala}:
+  \begin{itemize}
+    \item \texttt{infer\_cols(df)}: detecta colunas numéricas/categóricas.
+    \item \texttt{make\_preprocess\_pipeline(X)}: monta \texttt{ColumnTransformer} + \texttt{StandardScaler}.
+  \end{itemize}
+\end{itemize}
+
+\emph{Subpasta \texttt{models/}}
+\begin{itemize}
+  \item \texttt{train.py} --- orquestração do treino:
+  \begin{itemize}
+    \item \texttt{train\_classifier(X, y, pre, test\_size)}: \texttt{LogisticRegression}.
+    \item \texttt{train\_regressor(X, y, pre, test\_size)}: \texttt{LinearRegression}.
+  \end{itemize}
+  \item \texttt{predict.py} --- avaliação/predição:
+  \begin{itemize}
+    \item \texttt{evaluate\_classifier(model, X\_test, y\_test)}: métricas + matriz de confusão.
+    \item \texttt{evaluate\_regressor(model, X\_test, y\_test)}: RMSE.
+  \end{itemize}
+\end{itemize}
+
+\emph{Subpasta \texttt{explain/}}
+\begin{itemize}
+  \item \texttt{coefficients.py} --- interpretabilidade:
+  \begin{itemize}
+    \item extrai \textbf{coeficientes}, \textbf{odds ratio} e ordena por \textit{importância}.
+    \item reconstrói nomes de features após \texttt{OneHotEncoder}.
+  \end{itemize}
+\end{itemize}
+
+\emph{Subpasta \texttt{chatbot/}}
+\begin{itemize}
+  \item \texttt{rules.py} --- \textbf{chat regrado} (MVP):
+  \begin{itemize}
+    \item mapeia palavras-chave $\rightarrow$ respostas com métricas/importâncias/pipeline.
+  \end{itemize}
+  \item \texttt{generative.py} (opcional) --- \textbf{LLM/ChatGPT}:
+  \begin{itemize}
+    \item função \texttt{answer\_with\_gpt(q, metrics, importances)} usando API externa;
+    \item nunca enviar dados sensíveis; chave em \textit{env var}.
+  \end{itemize}
+\end{itemize}
+
+\paragraph{3. \texttt{configs/}}
+\begin{itemize}
+  \item \texttt{settings.example.toml} --- parâmetros \emph{template} (o aluno copia para \texttt{settings.toml}):
+\begin{lstlisting}
+theme   = "titanic"
+target  = "Survived"
+test_size = 0.2
+
+[model]
+type    = "logistic_regression"
+max_iter = 1000
+\end{lstlisting}
+  \item \texttt{logging.conf} --- logging básico em console:
+\begin{lstlisting}
+[loggers]
+keys=root
+[handlers]
+keys=consoleHandler
+[formatters]
+keys=simpleFormatter
+[logger_root]
+level=INFO
+handlers=consoleHandler
+[handler_consoleHandler]
+class=StreamHandler
+level=INFO
+formatter=simpleFormatter
+args=(sys.stdout,)
+[formatter_simpleFormatter]
+format=%(asctime)s - %(levelname)s - %(message)s
+\end{lstlisting}
+\end{itemize}
+
+\paragraph{4. \texttt{data/}}
+\begin{itemize}
+  \item \texttt{raw/} --- datasets originais (ex.: \texttt{train.csv}); evitar versionar grandes/sensíveis.
+  \item \texttt{processed/} --- dados tratados (opcional) para reuso em aula.
+  \item \texttt{models/} --- artefatos do modelo (\texttt{.pkl}); no MVP, pode versionar.
+\end{itemize}
+
+\paragraph{5. \texttt{notebooks/}}
+\begin{itemize}
+  \item \texttt{01\_eda\_titanic.ipynb} --- exploração (distribuições, nulos, correlações).
+  \item Boas práticas:
+  \begin{itemize}
+    \item deixar notebook \textbf{limpo e reprodutível};
+    \item mover funções estáveis para \texttt{core/}.
+  \end{itemize}
+\end{itemize}
+
+\paragraph{6. \texttt{tests/}}
+\begin{itemize}
+  \item \texttt{test\_data\_io.py}:
+\begin{lstlisting}[language=python]
+from io import StringIO
+from core.data.io import read_csv_smart
+
+def test_read_csv_smart():
+    csv = "A,B\n1,2\n3,4\n"
+    df = read_csv_smart(StringIO(csv))
+    assert df.shape == (2, 2)
+\end{lstlisting}
+  \item \texttt{test\_preprocess.py}:
+\begin{lstlisting}[language=python]
+import pandas as pd
+from core.features.preprocess import make_preprocess_pipeline
+
+def test_make_preprocess():
+    X = pd.DataFrame({"num":[1,2,3], "cat":["a","b","a"]})
+    pre = make_preprocess_pipeline(X)
+    Xt = pre.fit_transform(X)
+    assert Xt.shape[0] == 3
+\end{lstlisting}
+  \item \texttt{test\_models.py}:
+\begin{lstlisting}[language=python]
+import pandas as pd
+from core.features.preprocess import make_preprocess_pipeline
+from core.models.train import train_classifier
+
+def test_train_classifier_runs():
+    df = pd.DataFrame({
+        "idade":[20,30,40,50],
+        "sexo":["M","F","M","F"],
+        "Survived":[0,1,0,1]
+    })
+    y = df["Survived"]
+    X = df.drop(columns=["Survived"])
+    pre = make_preprocess_pipeline(X)
+    model, X_test, y_test = train_classifier(X, y, pre, test_size=0.5)
+    assert len(model.predict(X_test)) == len(y_test)
+\end{lstlisting}
+\end{itemize}
+
+\paragraph{7. \texttt{docs/}}
+\begin{itemize}
+  \item \texttt{README.md} --- índice/portal da documentação (links para os demais .md).
+  \item \texttt{pmc.md} --- Project Model Canvas do grupo (texto + imagem do canvas).
+  \item \texttt{architecture.md} --- descrição das camadas + imagem do diagrama.
+  \item \texttt{data\_model.md} --- dicionário de dados (campos, tipos, significados) e DER/MER.
+  \item \texttt{governance\_lgpd.md} --- como o projeto aplica DAMA (qualidade, metadados, segurança, ciclo de vida) e princípios da LGPD (minimização, anonimização, consentimento, logs).
+  \item \texttt{testing.md} --- o que é testado (unidade/integr., critérios de aceite), como rodar \texttt{pytest}.
+  \item \texttt{deployment.md} --- guia de deploy em Streamlit Cloud (e alternativa Render/Docker).
+  \item \texttt{images/architecture.png} --- export do diagrama (draw.io/diagrams.net).
+\end{itemize}
+
+\paragraph{8. Arquivos da raiz}
+\begin{itemize}
+  \item \texttt{requirements.txt} --- dependências mínimas:
+\begin{lstlisting}
+pandas
+numpy
+scikit-learn
+streamlit
+# opcional para heatmap da matriz de confusão:
+matplotlib
+\end{lstlisting}
+  \item \texttt{.gitignore} --- ignora artefatos locais e dados grandes/sensíveis:
+\begin{lstlisting}
+.venv/
+__pycache__/
+*.pkl
+*.csv
+data/raw/*
+.ipynb_checkpoints/
+\end{lstlisting}
+  \item \texttt{README.md} --- portal do repositório (resumo, como rodar, links para \texttt{docs/}).
+\end{itemize}
+
+
+
+\clearpage
+\section{Visão Geral da Solução (End-to-end)}
+
+Esta seção descreve, de forma conceitual e técnica, a solução proposta para o \textit{Kaggle Chatbot MVP}. O objetivo é que o aluno consiga enxergar o sistema de ponta a ponta --- da entrada de dados ao chatbot --- e compreender \textbf{onde o Machine Learning entra} no fluxo, quais são os artefatos gerados e como as camadas interagem.
+
+\subsection{Objetivos Funcionais e Não Funcionais}
+
+\paragraph{Objetivos funcionais}
+\begin{enumerate}
+  \item Permitir \textbf{upload} de um dataset (ex.: \texttt{train.csv} do Titanic).
+  \item \textbf{Pré-processar} os dados (imputação, codificação, padronização).
+  \item \textbf{Treinar} um modelo (classificação: Regressão Logística; regressão: Regressão Linear).
+  \item \textbf{Avaliar} o modelo (métricas e matriz de confusão / RMSE).
+  \item \textbf{Explicar} o modelo (coeficientes e \textit{odds ratio} ou importâncias lineares).
+  \item \textbf{Conversar} via chatbot regrado (FAQ sobre métricas/variáveis/pipeline).
+\end{enumerate}
+
+\paragraph{Objetivos não funcionais}
+\begin{itemize}
+  \item Simplicidade (MVP), reprodutibilidade (venv + \texttt{requirements.txt}), separação de responsabilidades (arquitetura em camadas).
+  \item Governança: não versionar dados sensíveis, registrar suposições de LGPD/DAMA em \texttt{docs/}.
+  \item Observabilidade mínima: mensagens de \textit{log} e validações de esquema (opcional).
+\end{itemize}
+
+\subsection{Arquitetura Lógica (alto nível)}
+
+A solução está organizada em camadas:
+
+\subsection{Fluxo de execução do MVP}
+
+O funcionamento do sistema pode ser descrito em etapas, desde a interação do usuário até a geração de resultados:
+
+\begin{enumerate}
+  \item \textbf{Usuário (navegador)}  
+        \begin{itemize}
+            \item Acessa a aplicação via navegador web.  
+            \item Interage por meio de upload de CSV, seleção de opções e envio de perguntas ao chatbot.  
+        \end{itemize}
+
+  \item \textbf{Camada \texttt{app/} (Streamlit UI)}  
+        \begin{itemize}
+            \item Responsável pela interface gráfica.  
+            \item Coleta entradas do usuário e exibe saídas (métricas, gráficos, respostas do chatbot).  
+        \end{itemize}
+
+  \item \textbf{Camada \texttt{core/}}  
+        \begin{itemize}
+            \item \texttt{data/}: leitura e validação de arquivos CSV.  
+            \item \texttt{features/}: criação de pipelines de pré-processamento (imputação, codificação, normalização).  
+            \item \texttt{models/}: treinamento, avaliação e predição de modelos de ML.  
+            \item \texttt{explain/}: extração de coeficientes, importâncias e odds ratios.  
+            \item \texttt{chatbot/}: regras de resposta baseadas em métricas e FAQs.  
+        \end{itemize}
+
+  \item \textbf{Camada \texttt{data/} (artefatos)}  
+        \begin{itemize}
+            \item \texttt{raw/}: datasets brutos (originais, sem modificações).  
+            \item \texttt{processed/}: datasets tratados (opcional, usados para treino limpo).  
+            \item \texttt{models/}: artefatos de modelos salvos em formato \texttt{.pkl}.  
+        \end{itemize}
+\end{enumerate}
+
+
+\textbf{Onde entra ML?} Na camada \texttt{core/models/}. O \textbf{Pipeline} de ML acopla o \textit{preprocessamento} (\texttt{core/features/}) ao \textit{estimador} (\texttt{LogisticRegression} ou \texttt{LinearRegression}). As \textbf{métricas} e \textbf{importâncias} alimentam o \texttt{chatbot/}.
+
+\subsection{Fluxo de Dados (detalhado)}
+
+O processamento no MVP segue um fluxo linear, onde cada camada tem uma responsabilidade clara:
+
+\begin{itemize}
+  \item \textbf{Upload CSV}  
+    - O usuário faz o upload do dataset pelo \texttt{Streamlit}.  
+    - Arquivo é enviado para o módulo \texttt{core/data/io.py}.  
+
+  \item \textbf{Leitura e Validação} (\texttt{core/data/io.py})  
+    - Leitura inteligente de CSV.  
+    - Verificação de colunas e tipos (quando definido em \texttt{schema.py}).  
+    - Saída: \texttt{DataFrame} limpo.  
+
+  \item \textbf{Pré-processamento} (\texttt{core/features/preprocess.py})  
+    - Identificação de colunas numéricas e categóricas.  
+    - Aplicação de \texttt{imputação}, \texttt{one-hot encoding} e \texttt{escalonamento}.  
+    - Saída: \texttt{X transformado} (pronto para treino).  
+
+  \item \textbf{Treinamento do Modelo} (\texttt{core/models/train.py})  
+    - Criação do modelo de classificação (ex.: \texttt{LogisticRegression}) ou regressão (ex.: \texttt{LinearRegression}).  
+    - Separação em treino/teste.  
+    - Saída: \texttt{Modelo treinado}.  
+
+  \item \textbf{Avaliação e Predição} (\texttt{core/models/predict.py})  
+    - Geração de métricas (acurácia, F1, RMSE).  
+    - Criação da matriz de confusão (para classificação).  
+    - Saída: \texttt{Métricas}.  
+
+  \item \textbf{Explicabilidade} (\texttt{core/explain/coefficients.py})  
+    - Extração de coeficientes, odds ratio ou importâncias de features.  
+    - Ordenação e interpretação simples.  
+    - Saída: \texttt{Importâncias das variáveis}.  
+
+  \item \textbf{Chatbot Regrado} (\texttt{core/chatbot/rules.py})  
+    - Recebe perguntas dos usuários.  
+    - Responde com base em regras + métricas + importâncias.  
+    - Saída: \texttt{Respostas do chat}.  
+\end{itemize}
+
+\subsection{Pipeline de ML (onde, como e por quê)}
+
+O \texttt{Pipeline} em Machine Learning pode ser visto como uma \textbf{esteira de produção}.  
+Imagine uma fábrica: cada etapa transforma a matéria-prima até virar o produto final.  
+Aqui, a "matéria-prima" são os dados do Titanic e o "produto final" é um modelo treinado capaz de prever \texttt{Survived} ou \texttt{Fare}.  
+
+\paragraph{Por que usar \texttt{Pipeline}?}
+\begin{itemize}
+  \item Garante que \textbf{as mesmas transformações} aplicadas nos dados de treino sejam usadas também nos dados de teste (evitando erros comuns).
+  \item Torna o código \textbf{modular e reutilizável}: cada passo é separado, mas integrado no fluxo completo.
+  \item Permite \textbf{salvar o modelo inteiro} (pré-processamento + regressão), sem precisar recriar cada etapa.
+  \item Facilita \textbf{explicação didática}: os alunos conseguem ver a sequência lógica (dados $\to$ limpeza $\to$ treino $\to$ avaliação).
+\end{itemize}
+
+\paragraph{Etapas do Pipeline}
+Cada passo do pipeline está implementado em um arquivo diferente dentro da pasta \texttt{core/}:
+
+\begin{enumerate}
+  \item \textbf{Leitura de Dados} --- (\texttt{core/data/io.py})  
+  Recebe um arquivo CSV (como o \texttt{train.csv} do Titanic) e transforma em um \texttt{DataFrame} do pandas.
+  
+  \item \textbf{Pré-processamento} --- (\texttt{core/features/preprocess.py})  
+  \begin{itemize}
+    \item Imputação de valores faltantes: mediana (números), moda (categóricos).  
+    \item Codificação: converte variáveis categóricas em números (One-Hot).  
+    \item Padronização: ajusta a escala dos números para comparação justa.
+  \end{itemize}
+
+  \item \textbf{Treino do Modelo} --- (\texttt{core/models/train.py})  
+  Divide dados em treino e teste, aplica o pré-processamento e treina um modelo simples:  
+  \begin{itemize}
+    \item Classificação (Logistic Regression) para prever sobrevivência.  
+    \item Regressão (Linear Regression) para prever tarifa (\texttt{Fare}).  
+  \end{itemize}
+
+  \item \textbf{Avaliação} --- (\texttt{core/models/predict.py})  
+  Mede o desempenho:  
+  \begin{itemize}
+    \item Classificação: acurácia, precisão, recall, F1-score e matriz de confusão.  
+    \item Regressão: erro médio (RMSE).  
+  \end{itemize}
+
+  \item \textbf{Explicabilidade} --- (\texttt{core/explain/coefficients.py})  
+  Extrai coeficientes e odds ratio, ajudando a responder:  
+  \textit{“Quais variáveis mais importam para a decisão do modelo?”}
+
+  \item \textbf{Chatbot Regrado} --- (\texttt{core/chatbot/rules.py})  
+  Interpreta perguntas do usuário e retorna respostas baseadas nas métricas e importâncias.  
+  Exemplo:  
+  \begin{itemize}
+    \item Pergunta: “Quais variáveis mais importam?”  
+    \item Resposta: “Sexo, Idade, Classe da Cabine...” (top coeficientes do modelo).  
+  \end{itemize}
+\end{enumerate}
+
+\paragraph{Exemplo (resumido do código)}
+\begin{lstlisting}[language=python]
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LogisticRegression
+
+# 1) Transformadores de dados
+num_pipe = SimpleImputer(strategy="median")
+cat_pipe = Pipeline([
+    ("impute", SimpleImputer(strategy="most_frequent")),
+    ("onehot", OneHotEncoder(handle_unknown="ignore"))
+])
+
+# 2) Pré-processamento
+pre = ColumnTransformer([
+    ("num", num_pipe, num_cols),
+    ("cat", cat_pipe, cat_cols)
+])
+
+# 3) Pipeline final (pré-processamento + modelo)
+clf = Pipeline([
+    ("pre", pre),
+    ("scaler", StandardScaler(with_mean=False)),
+    ("model", LogisticRegression(max_iter=1000))
+])
+clf.fit(X_train, y_train)
+\end{lstlisting}
+
+
+\subsection{Experiência do Usuário (UX) esperada}
+
+\begin{enumerate}
+  \item Usuário faz upload do CSV e escolhe a tarefa na \textbf{UI} (aba ``Treino \& Métricas'').
+  \item O app mostra \textbf{prévia dos dados}, treina o modelo, exibe \textbf{métricas} e \textbf{importâncias}.
+  \item Na aba \textbf{Chat}, o usuário faz perguntas; o sistema responde com base nos artefatos do último treino.
+\end{enumerate}
+\subsection{Validações e Erros Comuns}
+
+\begin{itemize}
+  \item \textbf{Coluna alvo ausente}: informar erro claro ao usuário.
+  \item \textbf{Tipos inesperados}: validar com \texttt{schema.py} (opcional).
+  \item \textbf{Dados fora do padrão}: 
+    \begin{itemize}
+      \item Tratar valores nulos.  
+      \item Ignorar categorias desconhecidas com \lstinline|OneHotEncoder(handle_unknown="ignore")|.  
+    \end{itemize}
+\end{itemize}
+
+\subsection{Segurança e LGPD (MVP)}
+
+\begin{itemize}
+  \item Usar apenas \textbf{datasets públicos ou educacionais}.  
+  \item Não versionar arquivos que contenham dados sensíveis.  
+  \item Documentar:  
+    \begin{itemize}
+      \item \textbf{Minimização}: coletar apenas o necessário.  
+      \item \textbf{Anonimização}: remover ou proteger identificadores pessoais.  
+    \end{itemize}
+  \item Evitar que logs exibam informações pessoais.  
+\end{itemize}
+
+\subsubsection{Anonimização via Criptografia}
+
+A anonimização não é apenas remover colunas sensíveis: em alguns casos, é preciso \textbf{proteger os identificadores} usando técnicas de criptografia.  
+
+\paragraph{Conceito}  
+Criptografia é o processo de transformar dados legíveis (ex.: CPF) em dados ilegíveis (texto cifrado), que só podem ser revertidos mediante uma chave.  
+
+\paragraph{Tipos principais}  
+\begin{itemize}
+  \item \textbf{Criptografia simétrica}  
+  - Usa a mesma chave para criptografar e descriptografar.  
+  - Exemplo: algoritmo AES.  
+  - Rápido, mas exige que a chave seja mantida em segredo entre todas as partes autorizadas.  
+
+  \item \textbf{Criptografia assimétrica}  
+  - Usa um par de chaves: pública (para criptografar) e privada (para descriptografar).  
+  - Exemplo: algoritmo RSA.  
+  - Mais segura para compartilhamento, mas mais lenta que a simétrica.  
+
+  \item \textbf{Hashing (pseudonimização)}  
+  - Transforma o dado em um código irreversível (ex.: SHA-256).  
+  - Não permite recuperar o original, mas é útil para verificar consistência (ex.: confirmar se um CPF já está na base sem armazená-lo).  
+\end{itemize}
+
+\paragraph{Aplicação prática (exemplo com CPF)}  
+\begin{itemize}
+  \item \textbf{Remoção}: excluir a coluna se não for essencial.  
+  \item \textbf{Pseudonimização}: aplicar \lstinline|hashlib.sha256(cpf.encode())| para armazenar apenas o hash.  
+  \item \textbf{Criptografia simétrica}: usar AES para cifrar o CPF e guardar a chave em um cofre seguro.  
+  \item \textbf{Criptografia assimétrica}: distribuir chaves públicas para cifrar CPFs, mantendo a chave privada apenas com o controlador dos dados.  
+\end{itemize}
+
+\paragraph{Boas práticas}  
+\begin{itemize}
+  \item Nunca armazenar chaves de criptografia no repositório (usar variáveis de ambiente ou cofres de segredo).  
+  \item Documentar claramente no \texttt{docs/governance\_lgpd.md} qual técnica foi usada.  
+  \item Optar sempre por \textbf{pseudonimização irreversível} quando o dado não precisar ser reidentificado.  
+\end{itemize}
+
+\subsubsection{Termo de Responsabilidade no Uso de Dados}
+
+Além das técnicas de anonimização, é fundamental que qualquer software ou projeto que lide com dados pessoais apresente um \textbf{termo de responsabilidade}.  
+
+\paragraph{O que é?}  
+Um documento (ou tela de aceite no software) em que os usuários e desenvolvedores reconhecem:  
+\begin{itemize}
+  \item Quais dados estão sendo coletados.  
+  \item Para qual finalidade os dados serão usados.  
+  \item Que os dados serão tratados conforme a LGPD.  
+  \item As limitações de responsabilidade do desenvolvedor ou instituição.  
+\end{itemize}
+
+\paragraph{Por que é importante?}  
+\begin{itemize}
+  \item Garante \textbf{transparência}: todos sabem como os dados serão tratados.  
+  \item Estabelece \textbf{consentimento expresso}, princípio central da LGPD.  
+  \item Reduz riscos legais para desenvolvedores e instituições.  
+  \item Educa os usuários sobre seus \textbf{direitos de titularidade de dados}.  
+\end{itemize}
+
+\paragraph{Exemplo prático (MVP educacional)}  
+Em projetos didáticos (como o Titanic), o termo pode ser simples, lembrando que:  
+\begin{itemize}
+  \item Os dados vêm de fonte pública (Kaggle).  
+  \item O uso é exclusivamente educacional.  
+  \item Não há coleta de informações pessoais reais dos alunos.  
+\end{itemize}
+
+\paragraph{Boas práticas}  
+\begin{itemize}
+  \item Colocar um arquivo \texttt{TERMO\_RESPONSABILIDADE.md} no repositório.  
+  \item Mostrar uma mensagem inicial no app Streamlit pedindo aceite antes do uso.  
+  \item Atualizar o termo sempre que mudar a forma de tratamento dos dados.
+  \item Popular o aceite do usuário em um banco de dados (ideal) ou em um arquivo .json por exemplo.
+\end{itemize}
+
+
+\subsection{Parâmetros Configuráveis (\texttt{configs/})}
+
+A pasta \texttt{configs/} centraliza todos os \textbf{parâmetros que controlam o comportamento do sistema}.  
+Isso permite que os alunos alterem aspectos importantes do projeto sem precisar modificar diretamente o código-fonte, favorecendo a \textbf{manutenção}, a \textbf{reprodutibilidade} e a \textbf{colaboração}.  
+
+\paragraph{Por que usar arquivos de configuração?}
+\begin{itemize}
+  \item \textbf{Separação de responsabilidades}: código implementa a lógica; arquivos de configuração definem os parâmetros.  
+  \item \textbf{Reprodutibilidade}: permite registrar exatamente quais parâmetros foram usados em um experimento.  
+  \item \textbf{Facilidade de ajuste}: mudar hiperparâmetros ou caminhos de dados sem alterar funções em Python.  
+  \item \textbf{Portabilidade}: grupos diferentes podem rodar o mesmo código com configurações distintas.  
+\end{itemize}
+
+\paragraph{Arquivos iniciais sugeridos}
+\begin{itemize}
+  \item \texttt{settings.example.toml}  
+  Contém parâmetros básicos e de fácil entendimento:  
+  \begin{itemize}
+    \item \texttt{theme} — estilo visual do Streamlit (light/dark).  
+    \item \texttt{target} — coluna alvo (ex.: \texttt{"Survived"}).  
+    \item \texttt{test\_size} — fração de dados para teste (ex.: 0.2 = 20\%).  
+    \item \texttt{model.max\_iter} — número máximo de iterações no treino do modelo.  
+  \end{itemize}
+
+  \item \texttt{logging.conf}  
+  Define formato e nível de detalhamento dos logs:  
+  \begin{itemize}
+    \item \texttt{DEBUG} — útil em desenvolvimento (mostra tudo).  
+    \item \texttt{INFO} — mensagens gerais de execução.  
+    \item \texttt{ERROR} — apenas erros críticos.  
+  \end{itemize}
+\end{itemize}
+
+\paragraph{Evolução futura (\texttt{configs/})}
+No futuro, esta pasta pode incluir parâmetros mais avançados:  
+\begin{itemize}
+  \item \textbf{Hiperparâmetros de modelos} — ex.: profundidade máxima de árvores (\texttt{max\_depth}), taxa de aprendizado (\texttt{learning\_rate}), regularização (\texttt{C}, \texttt{alpha}).  
+  \item \textbf{Pré-processamento} — se padronizar ou normalizar variáveis, como tratar outliers, quais colunas descartar.  
+  \item \textbf{Cross-validation} — número de \texttt{folds}, estratégias de validação (ex.: estratificada).  
+  \item \textbf{Gerenciamento de dados} — caminhos de input/output, formatos aceitos (CSV, Parquet).  
+  \item \textbf{Chaves de API} (quando for integrar com GPT ou serviços externos).  
+\end{itemize}
+
+\paragraph{Conceitos teóricos importantes}
+\begin{itemize}
+  \item \textbf{Parâmetros} — valores fixos que definem como o modelo é treinado (ex.: taxa de aprendizado).  
+  \item \textbf{Hiperparâmetros} — parâmetros que não são aprendidos automaticamente, mas definidos pelo usuário antes do treino.  
+  \item \textbf{Configuração de ambiente} — controla a execução do software (ex.: nível de log, caminhos de pastas).  
+\end{itemize}
+
+\paragraph{Boas práticas}
+\begin{itemize}
+  \item Manter um arquivo \texttt{settings.example.toml} como referência.  
+  \item Usar variáveis de ambiente para credenciais sensíveis (não versionar chaves).  
+  \item Documentar cada parâmetro no \texttt{docs/configs.md}.  
+\end{itemize}
+
+
+\subsection{Extensões Futuras (além do MVP)}
+
+O MVP serve como ponto de partida simples, mas vários recursos podem ser adicionados em fases posteriores para aproximar o projeto de um sistema profissional.  
+
+\begin{itemize}
+  \item \textbf{Substituição do chat regrado por LLM (IA Generativa)}  
+  - Atualmente, o chat é baseado em regras simples (intents por palavras-chave).  
+  - Futuro: integrar uma \textbf{API de LLM}, como a OpenAI (GPT), para permitir perguntas livres e respostas mais contextuais.  
+  - O backend em \texttt{core/} pode ser mantido: a LLM só substituiria o módulo \texttt{chatbot/rules.py}.  
+  - Implicação: necessidade de chaves de API, custos por uso e cuidados com privacidade.  
+
+  \item \textbf{Validação de esquema e Feature Store}  
+  - \textbf{Validação de esquema}: usar bibliotecas como \texttt{pandera} ou \texttt{pydantic} para garantir que as colunas do dataset tenham os tipos e nomes esperados.  
+  - \textbf{Feature Store}: repositório simplificado para armazenar variáveis já processadas, evitando repetir etapas de pré-processamento a cada execução.  
+  - Benefício: menos erros de dados inconsistentes entre treino e inferência.  
+
+  \item \textbf{Cross-validation, busca de hiperparâmetros e métricas avançadas}  
+  - \textbf{Cross-validation (CV)}: dividir o dataset em múltiplas partes para validar o modelo em diferentes subconjuntos, aumentando robustez.  
+  - \textbf{Busca de hiperparâmetros}: técnicas como \texttt{GridSearchCV} ou \texttt{RandomizedSearchCV} para ajustar parâmetros automaticamente.  
+  - \textbf{Novas métricas}:  
+    \begin{itemize}
+      \item Classificação: AUC-ROC (capacidade de separar classes).  
+      \item Regressão: MAE (erro absoluto médio), R$^2$ (explicação da variância).  
+    \end{itemize}
+  - Isso transforma o projeto de um MVP didático para uma análise de performance mais científica.  
+
+  \item \textbf{Versionamento de datasets e modelos}  
+  - Ferramentas como \textbf{DVC (Data Version Control)} ou \textbf{MLflow} permitem rastrear versões de dados e modelos treinados.  
+  - Exemplo: saber qual versão do Titanic foi usada para treinar um modelo específico.  
+  - Importância: garante reprodutibilidade e transparência em ciência de dados.  
+
+  \item \textbf{Deploy com storage externo}  
+  - No MVP, os modelos são salvos localmente em \texttt{data/models/}.  
+  - Futuro: usar armazenamento em nuvem (AWS S3, Azure Blob, GCP Storage).  
+  - Benefícios: escalabilidade, compartilhamento entre times, maior segurança e backup automático.  
+\end{itemize}
+
+\paragraph{Resumo}  
+Essas extensões permitem que o projeto evolua de um \textbf{MVP educacional} para um sistema próximo ao nível de mercado, onde práticas de engenharia de ML (\textit{MLOps}) são aplicadas de forma incremental.
+
+
+
+\clearpage
+\section{Fluxo de Desenvolvimento do MVP}
+
+Uma vez compreendida a solução de ponta a ponta e suas camadas, é importante que o aluno saiba como transformar a teoria em prática. O desenvolvimento do MVP segue um fluxo de atividades bem definido que garante reprodutibilidade, clareza e organização.
+
+\subsection{Etapa 1: Preparação do Repositório}
+
+Antes de escrever qualquer código, cria-se o \textbf{repositório GitHub} e inicializa-se a árvore de pastas conforme o padrão discutido anteriormente. Esse passo é essencial para estabelecer a separação de responsabilidades:
+
+\begin{enumerate}
+  \item Criar repositório \texttt{kaggle-chatbot-mvp}.
+  \item Clonar localmente: \texttt{git clone <URL>}.
+  \item Criar pastas: \texttt{app/}, \texttt{core/}, \texttt{configs/}, \texttt{docs/}, \texttt{tests/}, \texttt{data/}.
+  \item Adicionar arquivos iniciais: \texttt{requirements.txt}, \texttt{.gitignore}, \texttt{README.md}.
+  \item Fazer o commit inicial: \texttt{git add . \&\& git commit -m "Estrutura inicial"}.
+\end{enumerate}
+
+\paragraph{Boas práticas}  
+Já nesse momento, recomenda-se definir no \texttt{README.md} os objetivos do projeto, instruções de instalação e links para os documentos em \texttt{docs/}. Isso dá clareza para qualquer novo colaborador.
+
+\subsection{Etapa 2: Instalação e Ambiente Virtual}
+
+O próximo passo é configurar o ambiente de desenvolvimento. Isso garante que todos os alunos utilizem as mesmas versões de bibliotecas, evitando conflitos.
+
+\begin{lstlisting}[language=bash]
+# Criar ambiente virtual
+python3 -m venv .venv
+
+# Ativar ambiente
+source .venv/bin/activate
+
+# Instalar dependências
+pip install -r requirements.txt
+\end{lstlisting}
+
+\paragraph{Dica prática}  
+O arquivo \texttt{requirements.txt} deve conter bibliotecas mínimas, como:
+
+\begin{lstlisting}
+pandas
+numpy
+scikit-learn
+streamlit
+\end{lstlisting}
+
+\subsection{Etapa 3: Execução Inicial do App}
+
+Para garantir que a estrutura está funcionando, basta rodar o aplicativo Streamlit:
+
+\begin{lstlisting}[language=bash]
+streamlit run app/main_app.py
+\end{lstlisting}
+
+Se a aplicação abrir no navegador, mesmo que ainda não contenha funcionalidades completas, significa que a integração entre \texttt{app/} e \texttt{core/} está funcionando.
+
+\subsection{Etapa 4: Treinamento do Modelo}
+
+Nesta fase entra o \textbf{Machine Learning}. O dataset escolhido (Titanic no exemplo) é carregado e separado em variáveis independentes (X) e alvo (y).
+
+\paragraph{Passos principais}
+\begin{enumerate}
+  \item Carregar CSV (\texttt{core/data/io.py}).
+  \item Dropar colunas irrelevantes (ID, textos livres).
+  \item Dividir dados em treino/teste (\texttt{train\_test\_split}).
+  \item Aplicar pipeline de pré-processamento (\texttt{core/features/preprocess.py}).
+  \item Treinar modelo de classificação ou regressão (\texttt{core/models/train.py}).
+\end{enumerate}
+
+\paragraph{Exemplo prático}
+\begin{lstlisting}[language=python]
+from core.models.train import train_classifier
+
+model, X_test, y_test = train_classifier(X, y, pre, test_size=0.2)
+\end{lstlisting}
+
+\subsection{Etapa 5: Avaliação e Interpretação}
+
+Depois do treino, avalia-se o modelo com métricas adequadas.
+
+\paragraph{Classificação}
+\begin{itemize}
+  \item Acurácia
+  \item Precisão
+  \item Recall
+  \item F1-score
+  \item Matriz de confusão
+\end{itemize}
+
+\paragraph{Regressão}
+\begin{itemize}
+  \item RMSE (Root Mean Squared Error)
+\end{itemize}
+
+\paragraph{Visualização prática}
+No Streamlit, a matriz de confusão deve ser exibida como uma tabela formatada (heatmap) e não apenas como lista de listas.
+
+\subsection{Etapa 6: Chatbot Regrado}
+
+Nesta fase, os alunos implementam as \textbf{regras do chatbot}. O código mapeia palavras-chave a respostas:
+
+\begin{lstlisting}[language=python]
+if "importância" in pergunta.lower():
+    return f"As variáveis mais influentes são: {top_features}"
+\end{lstlisting}
+
+\paragraph{Objetivo didático}  
+Mostrar que é possível criar um chatbot funcional sem depender de LLMs, apenas com base em regras determinísticas.
+
+\subsection{Etapa 7: Documentação}
+
+Cada grupo deve preencher os documentos em \texttt{docs/}:
+\begin{itemize}
+  \item \texttt{pmc.md}: Project Model Canvas do grupo.
+  \item \texttt{architecture.md}: diagrama de arquitetura (draw.io).
+  \item \texttt{data\_model.md}: dicionário de dados.
+  \item \texttt{governance\_lgpd.md}: aspectos de DAMA e LGPD.
+\end{itemize}
+
+\subsection{Etapa 8: Deploy}
+
+O deploy é realizado na Streamlit Cloud, conectando o repositório GitHub e apontando para \texttt{app/main\_app.py}.  
+Configura-se o ambiente Python (3.11, por exemplo) e garante-se que o \texttt{requirements.txt} está atualizado.
+
+\paragraph{Verificação final}  
+Após o deploy, cada grupo deve fornecer no \texttt{README.md} o link público do app funcionando.
+
+
+
+
+
+
+\clearpage
+\section{Integração com IA Generativa (ChatGPT)}
+
+Até agora o MVP foi construído com um \textbf{chatbot regrado}, isto é, um sistema baseado em regras fixas que respondem a perguntas com base em métricas ou FAQs pré-programadas. Essa abordagem é útil para aprendizado inicial, mas apresenta limitações: não entende variações linguísticas mais complexas e não responde perguntas fora do escopo definido.
+
+Uma evolução natural é integrar uma \textbf{IA Generativa}, como o ChatGPT (ou outros modelos LLM --- Large Language Models), ao fluxo da aplicação.
+
+\subsection{Ponto de integração no MVP}
+
+O local mais adequado para incluir a IA generativa é dentro do módulo \texttt{core/chatbot/}. Nesse ponto, já temos:
+
+\begin{itemize}
+  \item As \textbf{métricas} calculadas pelo modelo treinado.
+  \item As \textbf{importâncias de variáveis} (coeficientes, odds ratios).
+  \item As \textbf{perguntas do usuário}, coletadas pela interface Streamlit.
+\end{itemize}
+
+Assim, podemos criar um arquivo \texttt{core/chatbot/generative.py} que substitui ou complementa o \texttt{rules.py}.
+
+\subsection{Como funciona a integração}
+
+\begin{enumerate}
+  \item O usuário envia uma pergunta no campo de texto do Streamlit.
+  \item O sistema decide:
+    \begin{itemize}
+      \item Se a pergunta é simples (métrica, feature importance) $\rightarrow$ responder com o \texttt{rules.py}.
+      \item Se a pergunta é aberta ou complexa $\rightarrow$ encaminhar para a API do ChatGPT.
+    \end{itemize}
+  \item A resposta do ChatGPT pode ser enriquecida com dados locais, injetando no prompt:
+    \begin{itemize}
+      \item Métricas do modelo.
+      \item Lista de variáveis mais importantes.
+      \item Regras de LGPD e governança que devem ser respeitadas.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Exemplo de código simplificado}
+
+\begin{lstlisting}[language=python]
+import openai
+import os
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+def answer_with_gpt(question, metrics, importances):
+    prompt = f"""
+    Você é um assistente educacional.
+    Responda de forma simples sobre o modelo treinado.
+    
+    Pergunta: {question}
+    Métricas: {metrics}
+    Variáveis mais importantes: {importances.head(5).to_dict('records')}
+    """
+    
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=300,
+        temperature=0.3
+    )
+    
+    return response["choices"][0]["message"]["content"]
+\end{lstlisting}
+
+\subsection{Considerações éticas e técnicas}
+
+\begin{itemize}
+  \item \textbf{LGPD:} nunca enviar dados sensíveis de usuários para a API externa.
+  \item \textbf{Custo:} chamadas à API possuem custo por token; necessário controle de uso.
+  \item \textbf{Infraestrutura:} garantir que a chave de API seja armazenada em variáveis de ambiente (não versionar no Git).
+  \item \textbf{Didática:} explicar aos alunos a diferença entre um chatbot baseado em regras e um baseado em IA generativa.
+\end{itemize}
+
+\subsection{Possíveis evoluções}
+
+\begin{itemize}
+  \item Implementar um \textbf{modo híbrido}, em que regras rápidas respondem perguntas simples e a IA generativa lida com perguntas abertas.
+  \item Injetar \textbf{dados adicionais} no prompt (ex.: estatísticas do dataset, explicações sobre preprocessamento).
+  \item Permitir que a IA gere \textbf{explicações pedagógicas}, conectando resultados do modelo com conceitos de estatística e machine learning.
+\end{itemize}
+
+\subsection{Resumo}
+
+A integração com ChatGPT torna o chatbot mais natural e capaz de responder perguntas abertas, mas deve ser feita com responsabilidade. O MVP serve como base regrada e transparente; a IA generativa é uma camada extra que enriquece a experiência de aprendizado.
+
+\clearpage
+\section{Engenharia de Dados \& Analytics Aplicada ao Titanic}
+
+A Engenharia de Dados e Analytics tem como objetivo estruturar, organizar e preparar os dados para que análises e modelos possam ser desenvolvidos de forma reprodutível, escalável e confiável. 
+Mais do que apenas armazenar dados, essa disciplina garante que a informação percorra um fluxo consistente, passando por camadas que asseguram integridade, qualidade e valor analítico.
+
+\subsection{Conceitos Fundamentais}
+
+A jornada de dados em projetos de Engenharia de Dados e Analytics pode ser entendida como um fluxo contínuo, onde cada etapa constrói a base para a seguinte. 
+Esse fluxo garante que os dados não apenas sejam armazenados, mas transformados em informação útil e em conhecimento aplicável.
+
+\begin{itemize}
+    \item \textbf{Engenharia de Dados:} 
+    É o ponto de partida do fluxo. Responsável por \textbf{coletar}, \textbf{armazenar} e \textbf{transformar} dados oriundos de múltiplas fontes (sistemas transacionais, sensores, arquivos CSV, APIs). 
+    A Engenharia de Dados implementa \textbf{pipelines} que extraem os dados (\textit{Extract}), transformam para um formato padronizado (\textit{Transform}) e os carregam em ambientes de análise (\textit{Load}). 
+    Além disso, zela pela \textbf{governança}, que envolve qualidade, segurança e rastreabilidade dos dados.
+    
+    \begin{itemize}
+        \item Entrada: dados brutos (ex.: CSV do Titanic contendo informações sem tratamento).
+        \item Saída: dados padronizados e estruturados, prontos para consumo.
+    \end{itemize}
+
+    \item \textbf{Modelagem de Dados:} 
+    Após o tratamento inicial, os dados precisam ser organizados de forma lógica para facilitar consultas, análises e integrações. 
+    A modelagem estabelece a \textbf{estrutura das tabelas, atributos e relacionamentos}, traduzindo o mundo real para o mundo dos dados. 
+    Pode ser conceitual (mapa de entidades), lógica (campos, tipos, chaves) ou física (implementação em um banco de dados). 
+    Essa etapa garante consistência e cria a ponte entre o armazenamento e o consumo analítico.
+    
+    \begin{itemize}
+        \item Entrada: dados tratados e organizados em camadas (SOT).
+        \item Saída: tabelas relacionais, dicionário de dados e modelos normalizados ou desnormalizados.
+    \end{itemize}
+
+    \item \textbf{Analytics:} 
+    É o estágio em que os dados se tornam informação. Aqui os analistas e cientistas utilizam \textbf{dashboards, relatórios e modelos preditivos} para gerar insights. 
+    O Analytics pode ser:
+    \begin{itemize}
+        \item \textit{Descritivo}: o que aconteceu? (ex.: proporção de sobreviventes do Titanic).
+        \item \textit{Diagnóstico}: por que aconteceu? (ex.: impacto da idade, sexo e classe na sobrevivência).
+        \item \textit{Preditivo}: o que pode acontecer? (ex.: prever se um passageiro hipotético sobreviveria).
+        \item \textit{Prescritivo}: o que devemos fazer? (ex.: priorizar passageiros em maior risco em um cenário simulado).
+    \end{itemize}
+    
+    \begin{itemize}
+        \item Entrada: dados modelados e consolidados (SPEC).
+        \item Saída: insights, métricas, visualizações e suporte à tomada de decisão.
+    \end{itemize}
+\end{itemize}
+
+\noindent
+\textbf{Fluxo resumido:} 
+\begin{enumerate}
+    \item Engenharia de Dados \textrightarrow coleta e padronização (SOR → SOT).
+    \item Modelagem de Dados \textrightarrow estrutura lógica para análise (SOT → SPEC).
+    \item Analytics \textrightarrow geração de conhecimento e apoio à decisão (SPEC → relatórios, modelos, dashboards).
+\end{enumerate}
+
+
+\subsection{Divisão em Camadas: SOR, SOT e SPEC (revisada e completa)}
+
+A arquitetura de dados adotada separa o fluxo em três camadas encadeadas: \textbf{SOR} (System of Record) → \textbf{SOT} (System of Truth) → \textbf{SPEC} (System of Engagement/Consumption). Abaixo, detalhamos para o \textit{Titanic} um \textbf{dicionário de dados por camada}, com: chave primária (PK), nome físico da coluna, nome lógico, descrição, tipo e \textit{regras/indicadores de qualidade}. Ao final, apresentamos uma \textbf{subseção de qualidade de dados} com as métricas a monitorar e exemplos de checks. Em sala, cada grupo deverá \underline{replicar esta estrutura} para seu próprio tema.
+
+\vspace{0.5em}
+\noindent\textbf{Padrão de nomenclatura (usado em SOT/SPEC)}
+\begin{itemize}[leftmargin=1.25em]
+  \item \texttt{codigo\_}: identificadores/códigos categóricos (strings curtas/domínios finitos).
+  \item \texttt{nome\_}: atributos textuais/nominais (possível PII).
+  \item \texttt{numero\_}: atributos numéricos contínuos/inteiros.
+  \item \texttt{flag\_}: variáveis binárias (0/1) e dummies de One-Hot Encoding (OHE).
+\end{itemize}
+
+% =========================
+% SOR
+% =========================
+\subsubsection*{SOR — System of Record (dados brutos, fonte original)}
+Dados conforme fonte (CSV Kaggle), preservando integridade histórica (\texttt{train.csv}/\texttt{test.csv}); sem padronizações além de tipagem mínima.
+
+\begin{table}[h!]
+\centering
+\footnotesize
+\begin{tabular}{@{}llp{3cm}p{5.5cm}lp{6.3cm}@{}}
+\toprule
+\textbf{PK} & \textbf{Coluna (física)} & \textbf{Nome lógico} & \textbf{Descrição} & \textbf{Tipo} & \textbf{Qualidade (regras/indicadores)} \\
+\midrule
+Sim  & PassengerId & código do passageiro & Identificador único do passageiro na base Titanic & int & \textit{Unicidade}=100\%; \textit{Not null}; \textit{Tipo}=inteiro; \textit{Volume}≥ total de linhas \\
+Não  & Survived    & flag de sobrevivência & Alvo (0=não, 1=sim). Presente apenas no \texttt{train.csv} & int(0/1) & \textit{Domínio}∈\{0,1\}; \textit{Not null} no treino; \textit{Coerência} ausente no \texttt{test.csv} \\
+Não  & Pclass      & classe do bilhete    & Classe do ticket (1, 2, 3) & int & \textit{Domínio}∈\{1,2,3\}; \textit{Not null}; \textit{Tipo}=inteiro \\
+Não  & Name        & nome do passageiro   & Nome completo (PII) & string & \textit{Not null}; \textit{PII}: não publicar; \textit{Comprimento}≤256 \\
+Não  & Sex         & código de sexo       & Sexo biológico: \texttt{male}/\texttt{female} & string & \textit{Domínio}∈\{male,female\}; \textit{Not null}≥99\% \\
+Não  & Age         & número da idade      & Idade em anos (pode conter nulos) & float & \textit{Faixa} [0,100]; \textit{Nulos}≤30\%; \textit{Tipo}=numérico \\
+Não  & SibSp       & número de irmãos/cônjuges & Contagem de irmãos/cônjuges a bordo & int & \textit{Faixa} [0,10]; \textit{Not null} \\
+Não  & Parch       & número de pais/filhos & Contagem de pais/filhos a bordo & int & \textit{Faixa} [0,10]; \textit{Not null} \\
+Não  & Ticket      & código de ticket     & Número/código do ticket (misto) & string & \textit{Not null}≥95\%; \textit{Regex} permitido: alfanumérico/[-./ ] \\
+Não  & Fare        & número da tarifa     & Valor pago pelo ticket & float & \textit{≥0}; \textit{Outliers} winsorizáveis; \textit{Not null}≥99\% \\
+Não  & Cabin       & código de cabine     & Código textual da cabine (muitos nulos) & string & \textit{Nulos} esperados; \textit{Regex}: letras+num \\
+Não  & Embarked    & código de embarque   & Porto de embarque (C,Q,S) & string & \textit{Domínio}∈\{C,Q,S\}; \textit{Not null}≥98\% \\
+\bottomrule
+\end{tabular}
+\caption{Dicionário SOR (dados brutos do Titanic).}
+\end{table}
+
+% =========================
+% SOT
+% =========================
+\subsubsection*{SOT — System of Truth (dados tratados/padronizados/enriquecidos)}
+Camada com padronização de nomes, imputações, derivação de campos e anonimização mínima. \textbf{Regra}: manter granularidade por passageiro e coerência semântica.
+
+\begin{table}[h!]
+\centering
+\footnotesize
+\begin{tabular}{@{}llp{3.2cm}p{6.1cm}lp{6.2cm}@{}}
+\toprule
+\textbf{PK} & \textbf{Coluna (SOT)} & \textbf{Nome lógico} & \textbf{Descrição/Transformação} & \textbf{Tipo} & \textbf{Qualidade (regras/indicadores)} \\
+\midrule
+Sim  & \textbf{codigo\_passageiro} & id único do passageiro &
+Cópia de \texttt{PassengerId} & int &
+\textit{Unicidade}=100\%; \textit{Not null}; \textit{Tipo}=int \\
+Não  & \textbf{flag\_sobreviveu}   & alvo binário &
+Mapeado de \texttt{Survived} (treino) & int(0/1) &
+\textit{Domínio}∈\{0,1\}; \textit{Not null} (treino); \textit{Coerência} com splits \\
+Não  & \textbf{codigo\_classe}     & classe do ticket &
+De \texttt{Pclass}; validar domínio \{1,2,3\} & int &
+\textit{Domínio} fixo; \textit{Not null}; \textit{Tipo}=int \\
+Não  & \textbf{nome\_passageiro\_hash} & hash do nome (PII) &
+\texttt{sha256(Name)} para pseudonimização (opcional) & string(64) &
+\textit{Não reversível}; \textit{Not null} se aplicado; \textit{Regex} [a-f0-9]\{64\} \\
+Não  & \textbf{codigo\_sexo}       & sexo categórico &
+\texttt{male}/\texttt{female} padronizado; trims/caixa baixa & string &
+\textit{Domínio}∈\{male,female\}; \textit{Not null}≥99\% \\
+Não  & \textbf{numero\_idade}      & idade imputada &
+\texttt{Age} imputada (mediana por \texttt{codigo\_sexo}+\texttt{codigo\_classe}) & float &
+\textit{Faixa} [0,100]; \textit{Nulos}=0\%; \textit{Método} documentado \\
+Não  & \textbf{codigo\_faixa\_idade} & faixa etária &
+Bin: \{child(0–12), teen(13–17), adult(18–59), senior(60+)\} & string &
+\textit{Domínio} fixo; \textit{Consistência} com \texttt{numero\_idade} \\
+Não  & \textbf{numero\_irm\_conj}  & irmãos/cônjuges &
+Cópia saneada de \texttt{SibSp} (outliers cap 10) & int &
+\textit{Faixa} [0,10]; \textit{Nulos}=0\% \\
+Não  & \textbf{numero\_pais\_filhos} & pais/filhos &
+Cópia saneada de \texttt{Parch} (outliers cap 10) & int &
+\textit{Faixa} [0,10]; \textit{Nulos}=0\% \\
+Não  & \textbf{numero\_tam\_familia} & tamanho da família &
+\texttt{numero\_irm\_conj + numero\_pais\_filhos + 1} & int &
+\textit{≥1}; \textit{Nulos}=0\%; \textit{Consistência} com componentes \\
+Não  & \textbf{numero\_tarifa}     & tarifa saneada &
+\texttt{Fare} com \textit{winsorization} p99 e \texttt{≥0} & float &
+\textit{≥0}; \textit{Outliers} controlados; \textit{Nulos}=0\% \\
+Não  & \textbf{codigo\_embarque}   & porto de embarque &
+Padroniza \texttt{Embarked} para \{C,Q,S\}; imputação moda & string &
+\textit{Domínio} fixo; \textit{Nulos}=0\% (após imputação) \\
+Não  & \textbf{codigo\_ticket\_hash} & ticket pseudonimizado &
+\texttt{sha256(Ticket)} (opcional) & string(64) &
+\textit{Não reversível}; \textit{Not null} se aplicado \\
+Não  & \textbf{codigo\_cabine\_grp} & grupo de cabine &
+Primeira letra de \texttt{Cabin} (A–G; U=desconhecido) & string(1) &
+\textit{Domínio}∈\{A..G,U\}; \textit{Nulos}=0\% (U=missing) \\
+\bottomrule
+\end{tabular}
+\caption{Dicionário SOT (dados tratados/padronizados e enriquecidos).}
+\end{table}
+
+% =========================
+% SPEC
+% =========================
+\subsubsection*{SPEC — System of Engagement/Consumption (pronto para Analytics/ML)}
+Camada de consumo analítico e modelagem. Aplica codificação OHE (\textit{one-hot}), seleção de features e (opcionalmente) escalonamento/normalização. \textbf{Regra}: nenhuma coluna com nulo; tipos finais compatíveis com o algoritmo; evitar multicolinearidade (ex.: \texttt{drop\_first} na OHE).
+
+\begin{table}[h!]
+\centering
+\footnotesize
+\begin{tabular}{@{}llp{3.4cm}p{6.4cm}lp{5.8cm}@{}}
+\toprule
+\textbf{PK} & \textbf{Coluna (SPEC)} & \textbf{Nome lógico} & \textbf{Descrição/Transformação} & \textbf{Tipo} & \textbf{Qualidade (regras/indicadores)} \\
+\midrule
+Sim  & \textbf{codigo\_passageiro} & id único do passageiro &
+Chave de junção/linhagem (não usada pelo modelo) & int &
+\textit{Unicidade}=100\% \\
+Não  & \textbf{flag\_sobreviveu}   & alvo &
+Igual ao SOT (apenas no conjunto de treino) & int(0/1) &
+\textit{Not null}; \textit{Domínio} \{0,1\} \\
+Não  & \textbf{numero\_idade\_std} & idade (escalada) &
+\texttt{StandardScaler(numero\_idade)} & float &
+\textit{Nulos}=0\%; \textit{Tipo}=numérico \\
+Não  & \textbf{numero\_tarifa\_log\_std} & tarifa (log+escala) &
+\texttt{StandardScaler(log1p(numero\_tarifa))} & float &
+\textit{≥0} antes de log; \textit{Nulos}=0\% \\
+Não  & \textbf{numero\_tam\_familia} & família (bruta) &
+Mantida sem escala (ou escalada conforme experimento) & int/float &
+\textit{Nulos}=0\% \\
+Não  & \textbf{flag\_sexo\_female} & dummy sexo (female) &
+OHE de \texttt{codigo\_sexo}; \texttt{drop\_first} (male omitido) & int(0/1) &
+\textit{Domínio} \{0,1\}; \textit{Nulos}=0\% \\
+Não  & \textbf{flag\_classe\_2} & dummy classe 2 &
+OHE de \texttt{codigo\_classe}; base=\texttt{1} & int(0/1) &
+\textit{Domínio} \{0,1\} \\
+Não  & \textbf{flag\_classe\_3} & dummy classe 3 &
+OHE de \texttt{codigo\_classe}; base=\texttt{1} & int(0/1) &
+\textit{Domínio} \{0,1\} \\
+Não  & \textbf{flag\_emb\_Q} & dummy embarque Q &
+OHE de \texttt{codigo\_embarque}; base=\texttt{C} & int(0/1) &
+\textit{Domínio} \{0,1\} \\
+Não  & \textbf{flag\_emb\_S} & dummy embarque S &
+OHE de \texttt{codigo\_embarque}; base=\texttt{C} & int(0/1) &
+\textit{Domínio} \{0,1\} \\
+Não  & \textbf{flag\_fx\_idade\_adult} & dummy faixa idade (adult) &
+OHE de \texttt{codigo\_faixa\_idade}; base=\texttt{child} & int(0/1) &
+\textit{Domínio} \{0,1\} \\
+Não  & \textbf{flag\_fx\_idade\_senior} & dummy faixa idade (senior) &
+OHE de \texttt{codigo\_faixa\_idade}; base=\texttt{child} & int(0/1) &
+\textit{Domínio} \{0,1\} \\
+% (se desejar incluir teen:)
+% Não  & \textbf{flag\_fx\_idade\_teen} & dummy faixa idade (teen) & OHE de \texttt{codigo\_faixa\_idade}; base=\texttt{child} & int(0/1) & \textit{Domínio} \{0,1\} \\
+\bottomrule
+\end{tabular}
+\caption{Dicionário SPEC (features prontas p/ Analytics/ML; OHE e escalonamento).}
+\end{table}
+
+% =========================
+% Mapeamento / Linhagem
+% =========================
+\subsubsection*{Quadro de Mapeamento (linhagem) SOR → SOT → SPEC}
+\begin{table}[h!]
+\centering
+\footnotesize
+\begin{tabular}{@{}p{3.8cm}p{6cm}p{3.8cm}p{3.8cm}@{}}
+\toprule
+\textbf{SOR.col} & \textbf{Transformações principais} & \textbf{SOT.col} & \textbf{SPEC.col(s)} \\
+\midrule
+PassengerId & cópia direta & codigo\_passageiro & codigo\_passageiro \\
+Survived & mapeamento int; manter apenas treino & flag\_sobreviveu & flag\_sobreviveu \\
+Pclass & valida domínio \{1,2,3\} & codigo\_classe & flag\_classe\_2, flag\_classe\_3 \\
+Name & hash (sha256) (opcional) & nome\_passageiro\_hash & (não usado) \\
+Sex & lower/trim; validação domínio & codigo\_sexo & flag\_sexo\_female (\texttt{drop\_first}) \\
+Age & imputação (mediana por sexo+classe) & numero\_idade & numero\_idade\_std \\
+SibSp,Parch & saneamento/faixas; soma+1 & numero\_irm\_conj, numero\_pais\_filhos, numero\_tam\_familia & numero\_tam\_familia \\
+Fare & winsorization p99; ≥0 & numero\_tarifa & numero\_tarifa\_log\_std \\
+Embarked & imputação moda; domínio \{C,Q,S\} & codigo\_embarque & flag\_emb\_Q, flag\_emb\_S \\
+Cabin & extrair letra; U se nulo & codigo\_cabine\_grp & (opcional: OHE futuro) \\
+\bottomrule
+\end{tabular}
+\caption{Linhagem resumida de campos SOR→SOT→SPEC.}
+\end{table}
+
+% =========================
+% Qualidade de Dados
+% =========================
+\subsubsection*{Qualidade dos Dados — Métricas e Checks (o que medir e como)}
+\paragraph{Definições-chave}
+\begin{itemize}[leftmargin=1.25em]
+  \item \textbf{Completude}: fração de registros não nulos em uma coluna (\% não nulos).
+  \item \textbf{Unicidade}: fração de chaves únicas (\% \texttt{distinct}=n\_linhas) para PKs.
+  \item \textbf{Validade}: aderência a domínios/regras (ex.: \texttt{Pclass}∈\{1,2,3\}; \texttt{Fare}≥0).
+  \item \textbf{Consistência}: coerência entre colunas (ex.: \texttt{numero\_tam\_familia}≥1 e = \texttt{irm\_conj + pais\_filhos + 1}).
+  \item \textbf{Acurácia} (quando verificável): proximidade do valor com a fonte/realidade.
+  \item \textbf{Tempestividade}: atualização no tempo necessário (menos relevante no Titanic didático).
+\end{itemize}
+
+\paragraph{Exemplos de indicadores por coluna (aplicar em SOT/SPEC)}
+\begin{itemize}[leftmargin=1.25em]
+  \item \texttt{codigo\_passageiro}: \textit{Unicidade}=100\%; \textit{Not null}=100\%; \textit{Tipo}=int.
+  \item \texttt{flag\_sobreviveu}: \textit{Domínio} \{0,1\}; \textit{Not null}=100\% no treino.
+  \item \texttt{codigo\_sexo}: \textit{Domínio} \{male,female\}; \textit{Not null}≥99\%; \textit{Valor inesperado}≤0.5\%.
+  \item \texttt{numero\_idade}: \textit{Faixa}[0,100]; \textit{Nulos}=0\% (após imputação); \textit{Método} registrado.
+  \item \texttt{numero\_tarifa}: \textit{≥0}; \textit{Outliers} pós-winsorization≤1\%; \textit{Nulos}=0\%.
+  \item \texttt{codigo\_embarque}: \textit{Domínio}\{C,Q,S\}; \textit{Nulos}=0\% (imput moda).
+  \item \texttt{flag\_*} (OHE SPEC): \textit{Domínio}\{0,1\}; \textit{Nulos}=0\%; \textit{Soma colunas por família} coerente (p.ex., \texttt{flag\_classe\_2 + flag\_classe\_3} ∈ \{0,1\}).
+\end{itemize}
+
+\paragraph{Checks típicos (exemplos práticos a serem automatizados)}
+\begin{itemize}[leftmargin=1.25em]
+  \item \textbf{Não pode ter nulo}: PKs (\texttt{codigo\_passageiro}); alvo no treino; features na SPEC.
+  \item \textbf{Mínimo de volume}: linhas ≥ limiar (ex.: ≥ 700 no treino); \% completude idade ≥ 70\% no SOR; = 100\% no SOT após imputação.
+  \item \textbf{Tipo estrito}: \texttt{numero\_*} numéricos; \texttt{flag\_*} inteiros 0/1; \texttt{codigo\_*} strings curtas.
+  \item \textbf{Domínios fixos}: \texttt{codigo\_classe}∈\{1,2,3\}; \texttt{codigo\_embarque}∈\{C,Q,S\}.
+  \item \textbf{Faixas plausíveis}: \texttt{numero\_idade}∈[0,100]; \texttt{numero\_tarifa}≥0 (após limpeza).
+  \item \textbf{Consistência derivada}: \texttt{numero\_tam\_familia} = \texttt{numero\_irm\_conj + numero\_pais\_filhos + 1}.
+  \item \textbf{Multicolinearidade OHE}: aplicar \texttt{drop\_first} para cada família de dummies.
+\end{itemize}
+
+\paragraph{Boas práticas de governança (resumo)}
+\begin{itemize}[leftmargin=1.25em]
+  \item \textbf{PII}: não levar \texttt{Name}/\texttt{Ticket} em claro para SOT/SPEC; usar hash se necessário.
+  \item \textbf{Reprodutibilidade}: documentar métodos de imputação, winsorization, OHE, escalas.
+  \item \textbf{Testes}: validar \texttt{schema} (nomes/tipos/domínios), \texttt{stats} (completude/validez), e \texttt{linhagem} (mapeamento SOR→SOT→SPEC).
+\end{itemize}
+
+
+
+
+\subsection{Modelagem de Dados no Contexto do Titanic (Revisada e Consistente)}
+
+A modelagem de dados do Titanic deve manter coerência com a divisão das camadas do pipeline de Engenharia de Dados. 
+A arquitetura é composta por uma única \textbf{SOR}, múltiplas \textbf{SOTs} especializadas (podendo refletir diferentes perspectivas de tratamento) 
+e uma única \textbf{SPEC} consolidada. 
+Assim, garantimos a integridade da origem, o refinamento incremental nas transformações e a disponibilização final para consumo analítico.
+
+\subsubsection*{Modelo Conceitual}
+As entidades centrais são definidas a partir do problema:
+\begin{itemize}
+    \item \textbf{Passageiro:} atributos de identificação e demográficos (\texttt{codigo\_passageiro}, idade, sexo, nome).
+    \item \textbf{Viagem:} atributos ligados à experiência da viagem (\texttt{codigo\_classe}, tarifa, cabine, porto de embarque).
+    \item \textbf{Sobrevivência:} atributo-alvo indicando se o passageiro sobreviveu (0 = não, 1 = sim).
+\end{itemize}
+
+Relações:
+\begin{itemize}
+    \item Cada \texttt{Passageiro} está associado a uma \texttt{Viagem}.
+    \item A entidade \texttt{Sobrevivência} está diretamente vinculada ao \texttt{Passageiro}.
+\end{itemize}
+
+\subsubsection*{Modelo Lógico}
+A organização em camadas de tabelas segue a linha:
+\begin{itemize}
+    \item \textbf{SOR:} única tabela \texttt{sor.titanic\_raw}, com todos os dados originais do Kaggle.
+    \item \textbf{SOTs:} duas visões especializadas:
+    \begin{itemize}
+        \item \texttt{sot.tb\_passageiros\_tratados} (\texttt{codigo\_passageiro}, \texttt{numero\_idade}, \texttt{codigo\_sexo}, \texttt{numero\_tam\_familia}).
+        \item \texttt{sot.tb\_viagens\_tratadas} (\texttt{codigo\_ticket\_hash}, \texttt{codigo\_classe}, \texttt{numero\_tarifa}, \texttt{codigo\_embarque}, \texttt{codigo\_cabine\_grp}).
+    \end{itemize}
+    \item \textbf{SPEC:} tabela única \texttt{spec.titanic\_analytics}, com atributos preparados para consumo e machine learning (incluindo One-Hot Encoding).
+\end{itemize}
+
+\subsubsection*{Modelo Físico}
+Estruturas de tabelas finais:
+\begin{itemize}
+    \item \texttt{sor.titanic\_raw(passengerid, survived, pclass, name, sex, age, sibsp, parch, ticket, fare, cabin, embarked)}.
+    \item \texttt{sot.tb\_passageiros\_tratados(codigo\_passageiro, numero\_idade, codigo\_sexo, numero\_tam\_familia)}.
+    \item \texttt{sot.tb\_viagens\_tratadas(codigo\_ticket\_hash, codigo\_classe, numero\_tarifa, codigo\_embarque, codigo\_cabine\_grp)}.
+    \item \texttt{spec.titanic\_analytics(codigo\_passageiro, numero\_idade\_std, numero\_tarifa\_log\_std, flag\_sexo\_female, flag\_classe\_2, flag\_classe\_3, flag\_emb\_Q, flag\_emb\_S, flag\_fx\_idade\_adult, flag\_fx\_idade\_senior, flag\_sobreviveu)}.
+\end{itemize}
+
+\subsubsection*{Integração com Git, Modelagem Física (1 SOR, 2 SOTs, 1 SPEC) e Qualidade}
+
+A organização do repositório segue uma \textbf{SOR única}, \textbf{duas SOTs especializadas} e \textbf{uma SPEC consolidada}. Cada camada possui seu \textit{DDL/Carga} em \texttt{.sql} e um \textit{arquivo de qualidade} em \texttt{.yml}, \underline{um YML por tabela} com pilares de qualidade e métricas.
+
+\paragraph{Árvore sugerida do repositório}
+\begin{verbatim}
+modelagem/
+  sor_titanic.sql
+  sot_passageiros_titanic.sql
+  sot_viagens_titanic.sql
+  spec_titanic.sql
+config/
+  qualidade/
+    qualidade_sor_titanic.yml
+    qualidade_sot_passageiros_titanic.yml
+    qualidade_sot_viagens_titanic.yml
+    qualidade_spec_titanic.yml
+docs/
+  conceitual_titanic.md
+  logico_titanic.sql
+  fisico_titanic.sql
+\end{verbatim}
+
+% =========================================================
+% SQLs
+% =========================================================
+
+\paragraph{modelagem/sor_titanic.sql}
+\begin{verbatim}
+-- ============================================================
+-- SOR — System of Record (única, dados brutos Kaggle)
+-- PostgreSQL (ajuste para seu SGBD se necessário)
+-- ============================================================
+CREATE SCHEMA IF NOT EXISTS sor;
+
+DROP TABLE IF EXISTS sor.titanic_raw CASCADE;
+CREATE TABLE sor.titanic_raw (
+  passengerid  INTEGER      PRIMARY KEY,
+  survived     INTEGER,                 -- 0/1 (somente no train.csv)
+  pclass       INTEGER      NOT NULL,   -- {1,2,3}
+  name         VARCHAR(256) NOT NULL,   -- PII
+  sex          VARCHAR(16)  NOT NULL,   -- male/female
+  age          NUMERIC(5,2),            -- pode ser nulo
+  sibsp        INTEGER      NOT NULL,
+  parch        INTEGER      NOT NULL,
+  ticket       VARCHAR(64)  NOT NULL,   -- PII potencial
+  fare         NUMERIC(10,4),
+  cabin        VARCHAR(32),
+  embarked     VARCHAR(4)               -- C/Q/S (pode ser nulo)
+);
+
+ALTER TABLE sor.titanic_raw
+  ADD CONSTRAINT ck_sor_pclass CHECK (pclass IN (1,2,3));
+
+ALTER TABLE sor.titanic_raw
+  ADD CONSTRAINT ck_sor_sex CHECK (LOWER(sex) IN ('male','female'));
+
+ALTER TABLE sor.titanic_raw
+  ADD CONSTRAINT ck_sor_age CHECK (age IS NULL OR (age >= 0 AND age <= 120));
+
+ALTER TABLE sor.titanic_raw
+  ADD CONSTRAINT ck_sor_fare CHECK (fare IS NULL OR fare >= 0);
+
+COMMENT ON TABLE sor.titanic_raw IS
+'Dados brutos do Titanic (fonte Kaggle). Manter integridade histórica.';
+\end{verbatim}
+
+\paragraph{modelagem/sot\_passageiros\_titanic.sql}
+\begin{verbatim}
+-- ====================================================================
+-- SOT #1 — Passageiros (tratamento e enriquecimento por pessoa)
+-- ====================================================================
+CREATE SCHEMA IF NOT EXISTS sot;
+
+DROP TABLE IF EXISTS sot.tb_passageiros_tratados CASCADE;
+CREATE TABLE sot.tb_passageiros_tratados (
+  codigo_passageiro   INTEGER      PRIMARY KEY,
+  flag_sobreviveu     INTEGER,                -- 0/1 (somente treino)
+  codigo_sexo         VARCHAR(8)  NOT NULL,   -- male/female
+  numero_idade        NUMERIC(5,2) NOT NULL,  -- idade imputada
+  codigo_faixa_idade  VARCHAR(12) NOT NULL,   -- child/teen/adult/senior
+  numero_irm_conj     INTEGER     NOT NULL,   -- SibSp saneado [0..10]
+  numero_pais_filhos  INTEGER     NOT NULL,   -- Parch saneado [0..10]
+  numero_tam_familia  INTEGER     NOT NULL    -- irm_conj + pais_filhos + 1 >= 1
+);
+
+ALTER TABLE sot.tb_passageiros_tratados
+  ADD CONSTRAINT ck_sot1_sexo   CHECK (codigo_sexo IN ('male','female'));
+ALTER TABLE sot.tb_passageiros_tratados
+  ADD CONSTRAINT ck_sot1_idade  CHECK (numero_idade >= 0 AND numero_idade <= 100);
+ALTER TABLE sot.tb_passageiros_tratados
+  ADD CONSTRAINT ck_sot1_fx     CHECK (codigo_faixa_idade IN ('child','teen','adult','senior'));
+ALTER TABLE sot.tb_passageiros_tratados
+  ADD CONSTRAINT ck_sot1_fam    CHECK (numero_tam_familia = numero_irm_conj + numero_pais_filhos + 1
+                                       AND numero_tam_familia >= 1);
+ALTER TABLE sot.tb_passageiros_tratados
+  ADD CONSTRAINT ck_sot1_flag   CHECK (flag_sobreviveu IN (0,1) OR flag_sobreviveu IS NULL);
+
+COMMENT ON TABLE sot.tb_passageiros_tratados IS
+'Tratamento por passageiro: sexo, idade (imput.), faixa etária, família, alvo.';
+
+-- -----------------------
+-- Carga a partir da SOR
+-- -----------------------
+WITH params AS (
+  SELECT 28.0::NUMERIC(5,2) AS mediana_idade
+),
+base AS (
+  SELECT
+    r.passengerid                                   AS codigo_passageiro,
+    r.survived                                      AS flag_sobreviveu,
+    LOWER(TRIM(r.sex))                              AS codigo_sexo,
+    COALESCE(r.age, (SELECT mediana_idade FROM params)) AS idade_imput,
+    LEAST(GREATEST(r.sibsp,0),10)                   AS irm_conj,
+    LEAST(GREATEST(r.parch,0),10)                   AS pais_filhos
+  FROM sor.titanic_raw r
+)
+INSERT INTO sot.tb_passageiros_tratados (
+  codigo_passageiro, flag_sobreviveu, codigo_sexo, numero_idade,
+  codigo_faixa_idade, numero_irm_conj, numero_pais_filhos, numero_tam_familia
+)
+SELECT
+  b.codigo_passageiro,
+  b.flag_sobreviveu,
+  b.codigo_sexo,
+  b.idade_imput,
+  CASE
+    WHEN b.idade_imput < 13 THEN 'child'
+    WHEN b.idade_imput < 18 THEN 'teen'
+    WHEN b.idade_imput < 60 THEN 'adult'
+    ELSE 'senior'
+  END AS codigo_faixa_idade,
+  b.irm_conj,
+  b.pais_filhos,
+  (b.irm_conj + b.pais_filhos + 1) AS numero_tam_familia
+FROM base b;
+\end{verbatim}
+
+\paragraph{modelagem/sot\_viagens\_titanic.sql}
+\begin{verbatim}
+-- ====================================================================
+-- SOT #2 — Viagens (tratamento por bilhete/viagem)
+-- ====================================================================
+CREATE SCHEMA IF NOT EXISTS sot;
+
+DROP TABLE IF EXISTS sot.tb_viagens_tratadas CASCADE;
+CREATE TABLE sot.tb_viagens_tratadas (
+  codigo_passageiro   INTEGER     PRIMARY KEY,   -- 1:1 com passageiro
+  codigo_classe       INTEGER     NOT NULL,      -- {1,2,3}
+  numero_tarifa       NUMERIC(10,4) NOT NULL,   -- winsor >= 0
+  codigo_embarque     VARCHAR(2)  NOT NULL,     -- C/Q/S (imput. moda)
+  codigo_cabine_grp   VARCHAR(1)  NOT NULL      -- A..G, U (unknown)
+);
+
+ALTER TABLE sot.tb_viagens_tratadas
+  ADD CONSTRAINT ck_sot2_classe   CHECK (codigo_classe IN (1,2,3));
+ALTER TABLE sot.tb_viagens_tratadas
+  ADD CONSTRAINT ck_sot2_tarifa   CHECK (numero_tarifa >= 0);
+ALTER TABLE sot.tb_viagens_tratadas
+  ADD CONSTRAINT ck_sot2_embarque CHECK (codigo_embarque IN ('C','Q','S'));
+ALTER TABLE sot.tb_viagens_tratadas
+  ADD CONSTRAINT ck_sot2_cabine   CHECK (codigo_cabine_grp IN ('A','B','C','D','E','F','G','U'));
+
+COMMENT ON TABLE sot.tb_viagens_tratadas IS
+'Tratamento por viagem: classe, tarifa saneada, porto, grupo de cabine.';
+
+-- -----------------------
+-- Carga a partir da SOR
+-- -----------------------
+WITH params AS (
+  SELECT
+    512.3292::NUMERIC(10,4) AS p99_tarifa,  -- exemplo
+    'S'::VARCHAR(2)         AS moda_emb     -- exemplo
+),
+base AS (
+  SELECT
+    r.passengerid AS codigo_passageiro,
+    r.pclass      AS codigo_classe,
+    -- winsor de tarifa
+    LEAST(GREATEST(COALESCE(r.fare,0),0), (SELECT p99_tarifa FROM params)) AS numero_tarifa,
+    COALESCE(UPPER(NULLIF(TRIM(r.embarked),'')), (SELECT moda_emb FROM params)) AS codigo_embarque,
+    -- primeira letra da cabine; U se nulo/indefinido
+    COALESCE(SUBSTRING(r.cabin FROM 1 FOR 1), 'U') AS codigo_cabine_grp
+  FROM sor.titanic_raw r
+)
+INSERT INTO sot.tb_viagens_tratadas (
+  codigo_passageiro, codigo_classe, numero_tarifa, codigo_embarque, codigo_cabine_grp
+)
+SELECT
+  b.codigo_passageiro, b.codigo_classe, b.numero_tarifa, b.codigo_embarque, b.codigo_cabine_grp
+FROM base b;
+\end{verbatim}
+
+\paragraph{modelagem/spec\_titanic.sql}
+\begin{verbatim}
+-- ====================================================================
+-- SPEC — Consumo Analítico/ML (única, consolidada)
+-- Inclui OHE (drop_first) e escalas numéricas
+-- ====================================================================
+CREATE SCHEMA IF NOT EXISTS spec;
+
+DROP TABLE IF EXISTS spec.titanic_analytics CASCADE;
+CREATE TABLE spec.titanic_analytics (
+  codigo_passageiro       INTEGER     PRIMARY KEY,
+  -- alvo (somente no conjunto de treino; pode ficar NULL para previsão)
+  flag_sobreviveu         INTEGER,
+  -- numéricas (já tratadas)
+  numero_idade_std        NUMERIC(10,4),
+  numero_tarifa_log_std   NUMERIC(10,4),
+  numero_tam_familia      INTEGER,
+  -- OHE drop_first
+  flag_sexo_female        INTEGER,  -- base: male
+  flag_classe_2           INTEGER,  -- base: classe_1
+  flag_classe_3           INTEGER,  -- base: classe_1
+  flag_emb_Q              INTEGER,  -- base: C
+  flag_emb_S              INTEGER,  -- base: C
+  flag_fx_idade_adult     INTEGER,  -- base: child
+  flag_fx_idade_senior    INTEGER   -- base: child
+);
+
+ALTER TABLE spec.titanic_analytics
+  ADD CONSTRAINT ck_spec_dom CHECK (
+    (flag_sexo_female IN (0,1) OR flag_sexo_female IS NULL) AND
+    (flag_classe_2 IN (0,1) OR flag_classe_2 IS NULL) AND
+    (flag_classe_3 IN (0,1) OR flag_classe_3 IS NULL) AND
+    (flag_emb_Q IN (0,1) OR flag_emb_Q IS NULL) AND
+    (flag_emb_S IN (0,1) OR flag_emb_S IS NULL) AND
+    (flag_fx_idade_adult IN (0,1) OR flag_fx_idade_adult IS NULL) AND
+    (flag_fx_idade_senior IN (0,1) OR flag_fx_idade_senior IS NULL)
+);
+
+COMMENT ON TABLE spec.titanic_analytics IS
+'Tabela de consumo para dashboards e ML (OHE drop_first + escalas).';
+
+-- ------------------------------------------------
+-- Carga a partir das duas SOTs (join 1:1)
+-- StandardScaler e log1p exemplificados como z-score simples
+-- (em produção, usar pipelines/transformers persistidos)
+-- ------------------------------------------------
+WITH base AS (
+  SELECT
+    p.codigo_passageiro,
+    p.flag_sobreviveu,
+    p.numero_idade,
+    v.numero_tarifa,
+    p.numero_tam_familia,
+    p.codigo_sexo,
+    v.codigo_classe,
+    v.codigo_embarque,
+    p.codigo_faixa_idade
+  FROM sot.tb_passageiros_tratados p
+  JOIN sot.tb_viagens_tratadas    v USING(codigo_passageiro)
+),
+stats AS (
+  SELECT
+    AVG(numero_idade)         AS mean_idade,
+    STDDEV_POP(numero_idade)  AS std_idade,
+    AVG(LN(1+numero_tarifa))  AS mean_logfare,
+    STDDEV_POP(LN(1+numero_tarifa)) AS std_logfare
+  FROM base
+),
+feat AS (
+  SELECT
+    b.codigo_passageiro,
+    b.flag_sobreviveu,
+    -- escala idade
+    CASE
+      WHEN s.std_idade > 0 THEN (b.numero_idade - s.mean_idade)/s.std_idade
+      ELSE 0
+    END AS numero_idade_std,
+    -- log+escala tarifa
+    CASE
+      WHEN s.std_logfare > 0 THEN (LN(1+b.numero_tarifa) - s.mean_logfare)/s.std_logfare
+      ELSE 0
+    END AS numero_tarifa_log_std,
+    b.numero_tam_familia,
+    -- OHE drop_first
+    CASE WHEN b.codigo_sexo = 'female' THEN 1 ELSE 0 END AS flag_sexo_female,
+    CASE WHEN b.codigo_classe = 2 THEN 1 ELSE 0 END AS flag_classe_2,
+    CASE WHEN b.codigo_classe = 3 THEN 1 ELSE 0 END AS flag_classe_3,
+    CASE WHEN b.codigo_embarque = 'Q' THEN 1 ELSE 0 END AS flag_emb_Q,
+    CASE WHEN b.codigo_embarque = 'S' THEN 1 ELSE 0 END AS flag_emb_S,
+    CASE WHEN b.codigo_faixa_idade = 'adult'  THEN 1 ELSE 0 END AS flag_fx_idade_adult,
+    CASE WHEN b.codigo_faixa_idade = 'senior' THEN 1 ELSE 0 END AS flag_fx_idade_senior
+  FROM base b CROSS JOIN stats s
+)
+INSERT INTO spec.titanic_analytics
+SELECT * FROM feat;
+\end{verbatim}
+
+% =========================================================
+% YAMLs (um por tabela; pilares e métricas)
+% =========================================================
+
+\paragraph{config/qualidade/qualidade\_sor\_titanic.yml}
+\begin{verbatim}
+tabela: sor.titanic_raw
+pilares:
+  completude:
+    - coluna: passengerid
+      regra: not_null
+      alvo: 100%
+    - coluna: sex
+      regra: not_null
+      alvo: >= 99%
+    - coluna: pclass
+      regra: not_null
+      alvo: 100%
+  unicidade:
+    - coluna: passengerid
+      regra: unique
+      alvo: 100%
+  validade:
+    - coluna: pclass
+      regra: domain
+      dominio: [1,2,3]
+    - coluna: sex
+      regra: domain
+      dominio: [male, female]
+    - coluna: age
+      regra: range
+      min: 0
+      max: 120
+    - coluna: fare
+      regra: min
+      min: 0
+  consistencia:
+    - descricao: tipos brutos coerentes com dicionário
+      regra: schema_types
+  acuracia:
+    - descricao: comparacao amostral com CSV fonte (hash/contagem)
+      regra: source_hash_check
+\end{verbatim}
+
+\paragraph{config/qualidade/qualidade\_sot\_passageiros\_titanic.yml}
+\begin{verbatim}
+tabela: sot.tb_passageiros_tratados
+pilares:
+  completude:
+    - coluna: codigo_passageiro
+      regra: not_null
+      alvo: 100%
+    - coluna: numero_idade
+      regra: not_null
+      alvo: 100%
+    - coluna: codigo_faixa_idade
+      regra: not_null
+      alvo: 100%
+  unicidade:
+    - coluna: codigo_passageiro
+      regra: unique
+      alvo: 100%
+  validade:
+    - coluna: codigo_sexo
+      regra: domain
+      dominio: [male, female]
+    - coluna: numero_idade
+      regra: range
+      min: 0
+      max: 100
+    - coluna: codigo_faixa_idade
+      regra: domain
+      dominio: [child, teen, adult, senior]
+  consistencia:
+    - descricao: tam_familia = irm_conj + pais_filhos + 1
+      regra: expr
+      expressao: numero_tam_familia = numero_irm_conj + numero_pais_filhos + 1
+  acuracia:
+    - descricao: registrar método de imputação idade
+      regra: doc_required
+\end{verbatim}
+
+\paragraph{config/qualidade/qualidade\_sot\_viagens\_titanic.yml}
+\begin{verbatim}
+tabela: sot.tb_viagens_tratadas
+pilares:
+  completude:
+    - coluna: codigo_passageiro
+      regra: not_null
+      alvo: 100%
+    - coluna: codigo_classe
+      regra: not_null
+      alvo: 100%
+    - coluna: numero_tarifa
+      regra: not_null
+      alvo: 100%
+  unicidade:
+    - coluna: codigo_passageiro
+      regra: unique
+      alvo: 100%
+  validade:
+    - coluna: codigo_classe
+      regra: domain
+      dominio: [1,2,3]
+    - coluna: codigo_embarque
+      regra: domain
+      dominio: [C,Q,S]
+    - coluna: numero_tarifa
+      regra: min
+      min: 0
+    - coluna: codigo_cabine_grp
+      regra: domain
+      dominio: [A,B,C,D,E,F,G,U]
+  consistencia:
+    - descricao: winsor aplicado em tarifa (p99)
+      regra: doc_required
+  acuracia:
+    - descricao: registrar método moda para embarque
+      regra: doc_required
+\end{verbatim}
+
+\paragraph{config/qualidade/qualidade\_spec\_titanic.yml}
+\begin{verbatim}
+tabela: spec.titanic_analytics
+pilares:
+  completude:
+    - coluna: codigo_passageiro
+      regra: not_null
+      alvo: 100%
+    - coluna: numero_idade_std
+      regra: not_null
+      alvo: 100%
+    - coluna: numero_tarifa_log_std
+      regra: not_null
+      alvo: 100%
+  unicidade:
+    - coluna: codigo_passageiro
+      regra: unique
+      alvo: 100%
+  validade:
+    - colunas_flags:
+        - flag_sexo_female
+        - flag_classe_2
+        - flag_classe_3
+        - flag_emb_Q
+        - flag_emb_S
+        - flag_fx_idade_adult
+        - flag_fx_idade_senior
+      regra: domain
+      dominio: [0,1]
+  consistencia:
+    - descricao: drop_first respeitado por familia de dummies
+      regra: expr_group
+      grupos:
+        - base: sexo=male
+          dummies: [flag_sexo_female]
+        - base: classe=1
+          dummies: [flag_classe_2, flag_classe_3]
+        - base: emb=C
+          dummies: [flag_emb_Q, flag_emb_S]
+        - base: faixa=child
+          dummies: [flag_fx_idade_adult, flag_fx_idade_senior]
+  acuracia:
+    - descricao: escalas calculadas do conjunto de treino e persistidas
+      regra: doc_required
+\end{verbatim}
+
+% =========================================================
+% Pipeline técnico (API + ETL + Streamlit)
+% =========================================================
+\subsubsection*{Pipeline técnico: API, ETL e Streamlit (fluxo fim-a-fim)}
+
+\paragraph{1) Ingestão (CSV Kaggle → SOR)}
+\begin{itemize}
+  \item \textbf{API/Script}: baixar \texttt{train.csv} e \texttt{test.csv} (Kaggle API ou upload).
+  \item \textbf{Carga}: inserir no banco em \texttt{sor.titanic\_raw} (umificar quando aplicável).
+  \item \textbf{Auditoria}: armazenar hash/contagem de linhas (acurácia de ingestão).
+\end{itemize}
+
+\paragraph{2) Transformações (SOR → SOTs)}
+\begin{itemize}
+  \item Executar \texttt{modelagem/sot\_passageiros\_titanic.sql} para derivar \texttt{sot.tb\_passageiros\_tratados}.
+  \item Executar \texttt{modelagem/sot\_viagens\_titanic.sql} para derivar \texttt{sot.tb\_viagens\_tratadas}.
+  \item \textbf{Qualidade}: validar com \texttt{config/qualidade/qualidade\_sot\_*.yml}.
+\end{itemize}
+
+\paragraph{3) Consolidação (SOTs → SPEC)}
+\begin{itemize}
+  \item Executar \texttt{modelagem/spec\_titanic.sql} (join 1:1, OHE drop\_first, escalas).
+  \item \textbf{Qualidade}: validar com \texttt{config/qualidade/qualidade\_spec\_titanic.yml}.
+\end{itemize}
+
+\paragraph{4) Treino/Inferência do Modelo (consumindo SPEC)}
+\begin{itemize}
+  \item \textbf{Treino}: ler \texttt{spec.titanic\_analytics} (subset com alvo), ajustar \textit{Logistic Regression}.
+  \item \textbf{Persistir}: salvar \texttt{scaler(s)} e \texttt{modelo.pkl}; registrar versões.
+  \item \textbf{Inferência}: aplicar no mesmo esquema de features (garantido pela SPEC).
+\end{itemize}
+
+\paragraph{5) Aplicação Streamlit (consumo + downloads)}
+\begin{itemize}
+  \item \textbf{Páginas}: 
+    \begin{enumerate}
+      \item \textit{Data Preview}: amostra de SOR/SOT/SPEC, indicadores de qualidade.
+      \item \textit{Train \& Evaluate}: treino, métricas, matriz de confusão, odds-ratio.
+      \item \textit{Predict}: formulário para predição com o pipeline de features.
+      \item \textit{Downloads}: exportar \texttt{SOTs} e \texttt{SPEC} em CSV para o usuário.
+    \end{enumerate}
+  \item \textbf{Botoões de download} (documentação):
+\end{itemize}
+
+\begin{verbatim}
+# (Trecho ilustrativo para documentação)
+import streamlit as st
+import pandas as pd
+
+# df_sot_passageiros, df_sot_viagens, df_spec já carregados do banco
+st.download_button("⬇️ Baixar SOT - Passageiros",
+                   data=df_sot_passageiros.to_csv(index=False).encode("utf-8"),
+                   file_name="sot_passageiros.csv",
+                   mime="text/csv")
+
+st.download_button("⬇️ Baixar SOT - Viagens",
+                   data=df_sot_viagens.to_csv(index=False).encode("utf-8"),
+                   file_name="sot_viagens.csv",
+                   mime="text/csv")
+
+st.download_button("⬇️ Baixar SPEC",
+                   data=df_spec.to_csv(index=False).encode("utf-8"),
+                   file_name="spec_titanic.csv",
+                   mime="text/csv"))
+\end{verbatim}
+
+\paragraph{6) Governança Git}
+\begin{itemize}
+  \item \textbf{Versionar}: SQLs e YMLs; cada alteração com mensagem clara; abrir \textit{PR} para revisão.
+  \item \textbf{Automação}: pipeline CI/CD executa checks de qualidade (ler YMLs), aplica SQLs e roda testes.
+  \item \textbf{Documentação}: atualizar \texttt{docs/conceitual\_titanic.md} e \texttt{docs/logico\_titanic.sql} quando houver mudanças.
+\end{itemize}
+
+
+
+\subsubsection*{Persistência do Modelo com \texttt{pickle}}
+
+\paragraph{O que é?}
+\texttt{pickle} é o módulo padrão do Python para \textbf{serializar} (transformar em bytes) e \textbf{desserializar} objetos Python. 
+Usamos para salvar modelos (\textit{estimators}), \texttt{pipelines} (pré-processamento + modelo), \texttt{encoders}, \texttt{scalers} e artefatos como dicionários de parâmetros.
+
+\paragraph{Como salvar? (modelo + pipeline)}
+\begin{verbatim}
+import pickle
+
+artefato = {
+    "versao": "2025-08-27",
+    "pipeline": pipeline_titanic,  # ex.: ColumnTransformer + LogisticRegression
+    "features": feature_names,     # lista de colunas esperadas pela SPEC
+    "metadata": {"treino_rows": len(df_treino)}
+}
+with open("models/titanic_pipeline.pkl", "wb") as f:
+    pickle.dump(artefato, f, protocol=pickle.HIGHEST_PROTOCOL)
+\end{verbatim}
+
+\paragraph{Como ler?}
+\begin{verbatim}
+import pickle
+
+with open("models/titanic_pipeline.pkl", "rb") as f:
+    artefato = pickle.load(f)
+
+pipeline = artefato["pipeline"]
+y_pred   = pipeline.predict(df_spec_inferencia[artefato["features"]])
+\end{verbatim}
+
+\paragraph{Boas práticas e alertas (ficar ligado)}
+\begin{itemize}
+  \item \textbf{Segurança}: NUNCA faça \texttt{pickle.load} de arquivos não confiáveis (pode executar código malicioso).
+  \item \textbf{Reprodutibilidade}: salve \texttt{requirements.txt} (ou \texttt{poetry.lock}) com versões de \textit{scikit-learn}, \textit{pandas} etc. Mudanças de versão podem quebrar a desserialização.
+  \item \textbf{Pipeline completo}: serialize \textbf{todo o pipeline} (pré-processamento + modelo). Evita desalinhamento de features.
+  \item \textbf{Compatibilidade}: fixe \texttt{random\_state} e normalize ordens de colunas; armazene \texttt{feature\_names} junto.
+  \item \textbf{Auditoria}: registre \texttt{metadata} (data de treino, métricas-chave, amostras, hash da SPEC).
+  \item \textbf{Alternativas}: \texttt{joblib} para objetos grandes (compressão), \texttt{onnx}/\texttt{mlflow} para portabilidade.
+\end{itemize}
+
+\bigskip
+
+
+
+
+\subsubsection*{Persistência no Banco (MySQL/PostgreSQL) via Python e Acesso no Streamlit}
+
+Nesta seção mostramos como criar os bancos e esquemas diretamente via Python, usando as bibliotecas \texttt{sqlalchemy} e os drivers correspondentes (\texttt{psycopg2} para PostgreSQL e \texttt{pymysql} para MySQL/MariaDB).
+
+\paragraph{Fluxo fim-a-fim (visão)}
+\[
+\text{Kaggle API} \rightarrow \text{CSV} \rightarrow \text{Carga SOR} \rightarrow 
+\text{MySQL/PostgreSQL} \rightarrow SQL de tratamento \rightarrow SOTs \rightarrow 
+SQL de consolidação \rightarrow SPEC \rightarrow Streamlit
+\]
+
+\paragraph{Criação do Banco e dos Esquemas via Python}
+
+\textbf{Exemplo — PostgreSQL}
+\begin{verbatim}
+from sqlalchemy import create_engine, text
+
+# URI de conexão (psycopg2 é o driver mais comum)
+DB_URI = "postgresql+psycopg2://usuario:senha@localhost:5432/postgres"
+engine = create_engine(DB_URI, isolation_level="AUTOCOMMIT")
+
+# Criar database "titanicdb"
+with engine.connect() as conn:
+    conn.execute(text("DROP DATABASE IF EXISTS titanicdb"))
+    conn.execute(text("CREATE DATABASE titanicdb"))
+
+# Conectar no banco recem-criado
+engine = create_engine("postgresql+psycopg2://usuario:senha@localhost:5432/titanicdb")
+
+# Criar schemas
+with engine.connect() as conn:
+    conn.execute(text("CREATE SCHEMA sor"))
+    conn.execute(text("CREATE SCHEMA sot"))
+    conn.execute(text("CREATE SCHEMA spec"))
+\end{verbatim}
+
+\textbf{Exemplo — MySQL/MariaDB}
+\begin{verbatim}
+from sqlalchemy import create_engine, text
+
+DB_URI = "mysql+pymysql://usuario:senha@localhost:3306"
+engine = create_engine(DB_URI, isolation_level="AUTOCOMMIT")
+
+# Criar database "titanicdb" com charset UTF-8
+with engine.connect() as conn:
+    conn.execute(text("DROP DATABASE IF EXISTS titanicdb"))
+    conn.execute(text("CREATE DATABASE titanicdb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"))
+
+# Conectar no banco
+engine = create_engine("mysql+pymysql://usuario:senha@localhost:3306/titanicdb")
+
+# Obs: MySQL não tem schemas nativos. 
+# Simulamos com prefixos: sor_, sot_, spec_ nas tabelas.
+\end{verbatim}
+
+\paragraph{O que é UTF-8 e Collate?}
+\begin{itemize}
+  \item \textbf{UTF-8}: é um padrão de codificação de caracteres que permite armazenar praticamente todos os símbolos de todas as línguas (acentos, emojis, ideogramas, etc.). É preferível a usar ISO-8859-1 ou ASCII, pois evita erros com acentuação.
+  \item \textbf{utf8mb4}: versão de UTF-8 usada no MySQL que suporta 4 bytes por caractere (inclui emojis e caracteres raros).  
+  \item \textbf{Collate}: define as regras de ordenação e comparação de strings (ex.: \texttt{utf8mb4\_unicode\_ci} significa insensível a maiúsculas/minúsculas, seguindo regras de Unicode).
+\end{itemize}
+
+\paragraph{Carga do CSV em SOR}
+\begin{verbatim}
+import pandas as pd
+
+# Lê CSV Kaggle
+df_train = pd.read_csv("train.csv")
+
+# Carrega na tabela sor.titanic_raw (Postgres) ou sor_titanic_raw (MySQL)
+df_train.to_sql("titanic_raw", engine, schema="sor", 
+                if_exists="replace", index=False, chunksize=5000, method="multi")
+\end{verbatim}
+
+\paragraph{Execução dos scripts SQL de tratamento (SOTs e SPEC)}
+\begin{verbatim}
+# Executar scripts armazenados em modelagem/*.sql
+sql_files = [
+    "modelagem/sot_passageiros_titanic.sql",
+    "modelagem/sot_viagens_titanic.sql",
+    "modelagem/spec_titanic.sql"
+]
+
+with engine.begin() as conn:
+    for f in sql_files:
+        with open(f, "r", encoding="utf-8") as sql:
+            conn.execute(text(sql.read()))
+\end{verbatim}
+
+\paragraph{Acesso no Streamlit (consulta e download)}
+\begin{verbatim}
+import streamlit as st
+import pandas as pd
+
+@st.cache_data
+def read_table(schema, table):
+    q = f"SELECT * FROM {schema}.{table} LIMIT 5000"
+    return pd.read_sql(q, engine)
+
+st.header("Camadas Titanic")
+
+df_sor  = read_table("sor", "titanic_raw")
+df_sot1 = read_table("sot", "tb_passageiros_tratados")
+df_sot2 = read_table("sot", "tb_viagens_tratadas")
+df_spec = read_table("spec", "titanic_analytics")
+
+st.download_button("⬇️ Baixar SOR", data=df_sor.to_csv(index=False).encode("utf-8"),
+                   file_name="sor_titanic.csv", mime="text/csv")
+st.download_button("⬇️ Baixar SOT - Passageiros",
+                   data=df_sot1.to_csv(index=False).encode("utf-8"),
+                   file_name="sot_passageiros.csv", mime="text/csv")
+st.download_button("⬇️ Baixar SOT - Viagens",
+                   data=df_sot2.to_csv(index=False).encode("utf-8"),
+                   file_name="sot_viagens.csv", mime="text/csv")
+st.download_button("⬇️ Baixar SPEC",
+                   data=df_spec.to_csv(index=False).encode("utf-8"),
+                   file_name="spec_titanic.csv", mime="text/csv")
+\end{verbatim}
+
+\paragraph{Checklist prático}
+\begin{itemize}
+  \item \textbf{Criar banco}: \texttt{CREATE DATABASE} em MySQL ou PostgreSQL.
+  \item \textbf{Codificação}: sempre usar \texttt{UTF-8/utf8mb4} para suportar todos os caracteres (nomes de passageiros do Titanic incluem acentos e caracteres especiais).
+  \item \textbf{Schemas}: usar nativamente no PostgreSQL; no MySQL simular via prefixos.
+  \item \textbf{Scripts}: manter os .sql versionados em Git, rodar via Python.
+  \item \textbf{Streamlit}: acessar via SQLAlchemy + Pandas; exportar CSVs de cada camada (SOR, SOTs, SPEC).
+\end{itemize}
+
+
+
+\subsubsection*{Parâmetros e Opções (Python, SQLAlchemy, Pandas, Streamlit) — explicados}
+
+Abaixo, reescrevemos os trechos de criação de bancos (PostgreSQL e MySQL) via Python e explicamos \textbf{todos os parâmetros} usados, para que fique claro o papel de cada um.
+
+\paragraph{PostgreSQL — criando banco e schemas via Python}
+\begin{verbatim}
+from sqlalchemy import create_engine, text
+
+DB_URI = "postgresql+psycopg2://usuario:senha@localhost:5432/postgres"
+
+# isolation_level="AUTOCOMMIT" é necessário para CREATE/DROP DATABASE no Postgres
+engine = create_engine(
+    DB_URI,
+    isolation_level="AUTOCOMMIT",  # VER EXPLICAÇÕES ABAIXO
+    echo=False,                    # loga SQL no stdout se True
+    future=True,                   # usa API 2.0 do SQLAlchemy
+    pool_pre_ping=True,            # checa conexões inativas antes de usar
+    pool_recycle=1800              # recicla conexões (segundos) para evitar timeout
+)
+
+with engine.connect() as conn:
+    conn.execute(text("DROP DATABASE IF EXISTS titanicdb"))
+    conn.execute(text("CREATE DATABASE titanicdb"))
+
+# Conecta no DB recém-criado e cria schemas
+pg_app = create_engine(
+    "postgresql+psycopg2://usuario:senha@localhost:5432/titanicdb",
+    echo=False, future=True, pool_pre_ping=True, pool_recycle=1800
+)
+with pg_app.connect() as conn:
+    conn.execute(text("CREATE SCHEMA IF NOT EXISTS sor"))
+    conn.execute(text("CREATE SCHEMA IF NOT EXISTS sot"))
+    conn.execute(text("CREATE SCHEMA IF NOT EXISTS spec"))
+\end{verbatim}
+
+\paragraph{MySQL/MariaDB — criando banco via Python}
+\begin{verbatim}
+from sqlalchemy import create_engine, text
+
+DB_URI = "mysql+pymysql://usuario:senha@localhost:3306"
+
+# Para CREATE/DROP DATABASE no MySQL, autocommit também evita erros de transação
+mysql_admin = create_engine(
+    DB_URI, isolation_level="AUTOCOMMIT", echo=False, future=True,
+    pool_pre_ping=True, pool_recycle=1800
+)
+
+with mysql_admin.connect() as conn:
+    conn.execute(text("DROP DATABASE IF EXISTS titanicdb"))
+    conn.execute(text(
+        "CREATE DATABASE titanicdb "
+        "CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+    ))
+
+# Conecta no banco e usa prefixo nas tabelas (MySQL não tem schemas separados)
+mysql_app = create_engine(
+    "mysql+pymysql://usuario:senha@localhost:3306/titanicdb",
+    echo=False, future=True, pool_pre_ping=True, pool_recycle=1800
+)
+\end{verbatim}
+
+\paragraph{Carregando CSV na SOR}
+\begin{verbatim}
+import pandas as pd
+
+# Postgres: respeita schema="sor" => sor.titanic_raw
+df_train = pd.read_csv("train.csv")
+df_train.to_sql(
+    "titanic_raw", pg_app, schema="sor",
+    if_exists="replace", index=False, chunksize=5000, method="multi"
+)
+
+# MySQL: sem schemas; use prefixo no nome da tabela (ex.: sor_titanic_raw)
+df_train.to_sql(
+    "sor_titanic_raw", mysql_app,
+    if_exists="replace", index=False, chunksize=5000, method="multi"
+)
+\end{verbatim}
+
+\paragraph{Executando scripts SQL (SOTs e SPEC)}
+\begin{verbatim}
+from sqlalchemy import text
+
+def run_sql_file(engine, path):
+    with open(path, "r", encoding="utf-8") as f:
+        sql = f.read()
+    with engine.begin() as conn:  # BEGIN/COMMIT automático
+        conn.execute(text(sql))
+
+# Postgres (usa schemas: sor/sot/spec)
+run_sql_file(pg_app, "modelagem/sor_titanic.sql")
+run_sql_file(pg_app, "modelagem/sot_passageiros_titanic.sql")
+run_sql_file(pg_app, "modelagem/sot_viagens_titanic.sql")
+run_sql_file(pg_app, "modelagem/spec_titanic.sql")
+
+# MySQL (arquivos .sql devem usar nomes com prefixos: sor_, sot_, spec_)
+run_sql_file(mysql_app, "modelagem/mysql_sor_titanic.sql")
+run_sql_file(mysql_app, "modelagem/mysql_sot_passageiros_titanic.sql")
+run_sql_file(mysql_app, "modelagem/mysql_sot_viagens_titanic.sql")
+run_sql_file(mysql_app, "modelagem/mysql_spec_titanic.sql")
+\end{verbatim}
+
+\paragraph{Acesso no Streamlit}
+\begin{verbatim}
+import streamlit as st
+import pandas as pd
+
+@st.cache_data(ttl=300, show_spinner=True)  # cachea por 5 min
+def read_table(engine, full_name):
+    return pd.read_sql(f"SELECT * FROM {full_name} LIMIT 5000", engine)
+
+# Postgres (schemas)
+df_sor  = read_table(pg_app,  "sor.titanic_raw")
+df_sot1 = read_table(pg_app,  "sot.tb_passageiros_tratados")
+df_sot2 = read_table(pg_app,  "sot.tb_viagens_tratadas")
+df_spec = read_table(pg_app,  "spec.titanic_analytics")
+
+# Ex.: botões de download
+st.download_button("⬇️ Baixar SPEC",
+    data=df_spec.to_csv(index=False).encode("utf-8"),
+    file_name="spec_titanic.csv", mime="text/csv")
+\end{verbatim}
+
+\paragraph{Glossário de parâmetros (o que é cada coisa?)}
+\begin{itemize}
+  \item \textbf{\texttt{DB\_URI}} (\textit{SQLAlchemy URL}): \\
+  Formato \texttt{dialeto+driver://usuario:senha@host:porta/base}. Exemplos: \\
+  \texttt{postgresql+psycopg2://.../titanicdb} (PostgreSQL) \\
+  \texttt{mysql+pymysql://.../titanicdb} (MySQL/MariaDB). \\
+  Define \textit{dialeto} (PostgreSQL/MySQL), \textit{driver} (psycopg2/pymysql), credenciais e banco.
+  
+  \item \textbf{\texttt{create\_engine(...)} (SQLAlchemy)}:
+  \begin{itemize}
+    \item \texttt{isolation\_level}: controla a \textbf{isolation level} de transações no DB. Valores comuns:
+      \begin{itemize}
+        \item \texttt{"AUTOCOMMIT"}: sem transação explícita; comandos executam imediatamente. \\
+        Necessário no \textbf{PostgreSQL} para \texttt{CREATE/DROP DATABASE}, pois esses comandos não podem estar dentro de uma transação.
+        \item \texttt{"READ COMMITTED"} (padrão PostgreSQL): cada query enxerga apenas dados já \textit{committed}.
+        \item \texttt{"REPEATABLE READ"}: transação enxerga snapshot estável até o commit.
+        \item \texttt{"SERIALIZABLE"}: nível mais restritivo; pode gerar mais conflitos mas evita anomalias.
+        \item (MySQL tem níveis equivalentes; por padrão costuma operar com \texttt{REPEATABLE READ}).
+      \end{itemize}
+    \item \texttt{echo=False}: se \texttt{True}, imprime o SQL gerado (útil para debug).
+    \item \texttt{future=True}: ativa a API 2.0 do SQLAlchemy (recomendada).
+    \item \texttt{pool\_pre\_ping=True}: testa a conexão do pool antes de usar; evita erros por conexões mortas.
+    \item \texttt{pool\_recycle=1800}: recicla conexões após \texttt{1800s}; útil para evitar timeouts do servidor.
+    \item \texttt{connect\_args=\{\}}: argumentos específicos do driver (ex.: em MySQL, \texttt{\{"charset":"utf8mb4"\}}; em Postgres, \texttt{\{"options":"-c statement\_timeout=5000"\}}).
+  \end{itemize}
+
+  \item \textbf{\texttt{text(sql)}} (SQLAlchemy Core): indica que a string é um \textit{statement} SQL textual seguro para \texttt{execute}. \\
+  Preferir \textbf{bind parameters} (ex.: \texttt{text("SELECT * FROM t WHERE id=:id")}) para evitar \textit{SQL injection} em entradas dinâmicas.
+
+  \item \textbf{\texttt{with engine.begin()}}: abre uma transação; faz \texttt{COMMIT} ao final ou \texttt{ROLLBACK} se ocorrer exceção. Em contraste, \texttt{isolation\_level="AUTOCOMMIT"} desliga a transação (útil só para operações específicas como \texttt{CREATE DATABASE}).
+
+  \item \textbf{Pandas \texttt{read\_csv(...)}:} 
+  \begin{itemize}
+    \item \texttt{encoding="utf-8"} (opcional): garante leitura correta de acentos.
+    \item \texttt{dtype=\{\}} (opcional): força tipos por coluna (útil para \texttt{PassengerId} como \texttt{int}).
+    \item \texttt{na\_values=[...]} (opcional): define marcadores de nulo adicionais.
+  \end{itemize}
+
+  \item \textbf{Pandas \texttt{to\_sql(...)}:}
+  \begin{itemize}
+    \item \texttt{name}: nome da tabela destino (p.ex., \texttt{"titanic\_raw"}).
+    \item \texttt{con}: engine/conn SQLAlchemy.
+    \item \texttt{schema}: (PostgreSQL) nome do schema lógico (\texttt{"sor"}). \\
+      \textit{MySQL não suporta schemas separados}; use \textbf{prefixo de tabela} (ex.: \texttt{sor\_titanic\_raw}) ou bancos diferentes.
+    \item \texttt{if\_exists}: \texttt{"fail"} (padrão), \texttt{"replace"} (drop+create), \texttt{"append"} (anexa).
+    \item \texttt{index=False}: não grava o índice do DataFrame como coluna.
+    \item \texttt{chunksize=5000}: envia linhas em blocos; melhora performance e uso de memória.
+    \item \texttt{method="multi"}: agrupa múltiplas linhas por \texttt{INSERT}; acelera carga.
+    \item \texttt{dtype=\{\}} (opcional): mapeia colunas para tipos SQL explícitos.
+  \end{itemize}
+
+  \item \textbf{Streamlit \texttt{@st.cache\_data(...)}:}
+  \begin{itemize}
+    \item \texttt{ttl=300}: tempo de vida do cache (segundos); após isso recarrega.
+    \item \texttt{show\_spinner=True}: exibe \textit{spinner} durante carregamento.
+    \item \texttt{persist="disk"} (opcional): persiste cache em disco (quando disponível).
+  \end{itemize}
+
+  \item \textbf{\texttt{st.download\_button(...)}:}
+  \begin{itemize}
+    \item \texttt{label}: texto do botão.
+    \item \texttt{data}: bytes do arquivo (use \texttt{.encode("utf-8")} para CSV).
+    \item \texttt{file\_name}: nome sugerido ao salvar.
+    \item \texttt{mime}: tipo MIME (\texttt{"text/csv"}, \texttt{"application/octet-stream"}, etc.).
+  \end{itemize}
+
+  \item \textbf{UTF-8, \texttt{utf8mb4}, Collation:}
+  \begin{itemize}
+    \item \textbf{UTF-8}: codificação que suporta praticamente todos os caracteres (acentos/emoji).
+    \item \textbf{\texttt{utf8mb4}} (MySQL): variante UTF-8 completa (4 bytes) — \textit{use sempre} em vez de \texttt{utf8} “antigo”.
+    \item \textbf{Collation} (p.ex., \texttt{utf8mb4\_unicode\_ci}): define regras de \textit{sorting} e comparação; \texttt{\_ci} = \textit{case-insensitive}.
+  \end{itemize}
+\end{itemize}
+
+\paragraph{Dicas finais}
+\begin{itemize}
+  \item Use \textbf{AUTOCOMMIT só quando necessário} (ex.: \texttt{CREATE/DROP DATABASE} no Postgres). No dia a dia, prefira \texttt{with engine.begin()} para garantir transações atômicas.
+  \item No \textbf{MySQL}, simule schemas com \textbf{prefixos de tabela} (ex.: \texttt{sor\_}, \texttt{sot\_}, \texttt{spec\_}) ou use \textbf{bancos distintos}.
+  \item Documente cada \textbf{parâmetro sensível} no seu README: \texttt{pool\_recycle}, \texttt{pool\_pre\_ping}, \texttt{ttl} do cache, \texttt{if\_exists}, \texttt{method/chunksize}.
+  \item Evite \textbf{SQL injection}: nunca concatenar strings vindas do usuário; use binds do SQLAlchemy.
+\end{itemize}
+
+
+\clearpage
+\section*{Listas de exercício}
+\subsection*{Sessão 1 (OBJETIVA)}
+
+\begin{enumerate}
+
+\item Uma startup de tecnologia decidiu construir um protótipo utilizando o framework Streamlit. O objetivo é validar rapidamente uma hipótese de negócio com baixo custo. Essa estratégia está relacionada a qual conceito de engenharia de software?
+\begin{enumerate}[label=\alph*)]
+\item Prototipagem evolutiva
+\item Minimum Viable Product (MVP)
+\item Prova de conceito (PoC)
+\item Arquitetura orientada a serviços
+\end{enumerate}
+
+\item O dataset Titanic é amplamente utilizado em aulas práticas por sua simplicidade e riqueza de variáveis. No contexto de aprendizado de máquina, ele é mais adequado para:
+\begin{enumerate}[label=\alph*)]
+\item Processamento de imagens
+\item Classificação supervisionada
+\item Mineração de texto
+\item Análise de séries temporais
+\end{enumerate}
+
+\item Um professor pede que os alunos organizem o planejamento do projeto em blocos visuais contendo: Problema, Pergunta de Pesquisa, Solução Proposta, Desenho de Arquitetura e Stakeholders. Esse modelo é denominado:
+\begin{enumerate}[label=\alph*)]
+\item Scrum Board
+\item Business Model Canvas
+\item Project Model Canvas (PMC)
+\item Kanban
+\end{enumerate}
+
+\item Em projetos de software, o PMC é utilizado porque:
+\begin{enumerate}[label=\alph*)]
+\item Substitui a codificação da solução
+\item Torna obsoleta a modelagem de dados
+\item Permite visão integrada dos elementos críticos do projeto
+\item Automatiza os testes de software
+\end{enumerate}
+
+\item Uma empresa desenvolveu um sistema onde todas as funcionalidades residem em um único código-base. A principal característica dessa abordagem é:
+\begin{enumerate}[label=\alph*)]
+\item Arquitetura monolítica
+\item Microsserviços independentes
+\item Integração orientada a eventos
+\item Cloud native distribuído
+\end{enumerate}
+
+\item Considere a seguinte organização de pastas: \texttt{core/features/}, \texttt{data/}, \texttt{models/}, \texttt{train.py}. Qual o propósito principal de \texttt{core/features/}?
+\begin{enumerate}[label=\alph*)]
+\item Guardar arquivos de imagens
+\item Implementar transformações e pipelines de dados
+\item Armazenar resultados de experimentos
+\item Centralizar relatórios de testes unitários
+\end{enumerate}
+
+\item O arquivo \texttt{train.py} em um projeto de machine learning tem como objetivo principal:
+\begin{enumerate}[label=\alph*)]
+\item Executar o treinamento de modelos
+\item Configurar a interface gráfica do usuário
+\item Documentar os requisitos do projeto
+\item Gerar relatórios financeiros
+\end{enumerate}
+
+\item Uma equipe precisa validar hipóteses antes de desenvolver toda a solução. Para isso, utiliza dashboards interativos com Streamlit. O benefício central dessa prática é:
+\begin{enumerate}[label=\alph*)]
+\item Garantir escalabilidade imediata
+\item Validar rapidamente ideias junto a stakeholders
+\item Evitar o uso de versionamento
+\item Aumentar custos iniciais do projeto
+\end{enumerate}
+
+\item Em relação a testes unitários, pode-se afirmar que:
+\begin{enumerate}[label=\alph*)]
+\item São executados apenas após o deploy
+\item Validam partes isoladas do código de forma automatizada
+\item Substituem a necessidade de documentação
+\item São equivalentes a testes de integração
+\end{enumerate}
+
+\item Em um projeto orientado a dados, os arquivos CSV, SQL ou Parquet são organizados na pasta \texttt{data/}. Isso está relacionado a:
+\begin{enumerate}[label=\alph*)]
+\item Armazenamento dos datasets para treino e teste
+\item Controle de versão do código
+\item Registro de logs de auditoria
+\item Interface de visualização de resultados
+\end{enumerate}
+
+\item Uma empresa está migrando de arquitetura monolítica para microsserviços. Entre os benefícios esperados, destaca-se:
+\begin{enumerate}[label=\alph*)]
+\item Maior independência e escalabilidade modular
+\item Redução imediata de custos de hardware
+\item Eliminação da necessidade de testes
+\item Substituição do PMC pelo Scrum
+\end{enumerate}
+
+\item No PMC, o bloco “Desenho de Arquitetura” serve para:
+\begin{enumerate}[label=\alph*)]
+\item Representar graficamente o modelo de dados e fluxos
+\item Criar cronogramas financeiros
+\item Especificar apenas requisitos não funcionais
+\item Automatizar pipelines de integração
+\end{enumerate}
+
+\item Em projetos de análise de dados, a etapa de pré-processamento tem como principal função:
+\begin{enumerate}[label=\alph*)]
+\item Treinar o modelo de machine learning
+\item Transformar dados brutos em dados prontos para análise
+\item Criar dashboards finais
+\item Documentar a arquitetura de software
+\end{enumerate}
+
+\item Uma vantagem do uso de frameworks como Streamlit em aulas práticas é:
+\begin{enumerate}[label=\alph*)]
+\item Permitir a construção rápida de aplicações interativas
+\item Eliminar a necessidade de banco de dados
+\item Garantir escalabilidade de microsserviços
+\item Substituir o processo de modelagem de dados
+\end{enumerate}
+
+\item O ciclo de vida de desenvolvimento de software pode ser comparado a um pipeline. Nesse pipeline, a etapa de \texttt{train.py} é equivalente a:
+\begin{enumerate}[label=\alph*)]
+\item Codificação de interface
+\item Treinamento e validação de modelos
+\item Especificação de requisitos
+\item Deploy em nuvem
+\end{enumerate}
+
+\item Em uma aplicação prática, o dataset Titanic pode ser usado para prever:
+\begin{enumerate}[label=\alph*)]
+\item Quem sobreviveu com base em variáveis de entrada
+\item O crescimento do PIB em diferentes países
+\item O tempo de resposta de uma API
+\item O custo total de um projeto de software
+\end{enumerate}
+
+\item Uma equipe discute se adota monólito ou microsserviços. A melhor escolha deve ser baseada em:
+\begin{enumerate}[label=\alph*)]
+\item Complexidade, escalabilidade e requisitos do projeto
+\item Preferência pessoal do desenvolvedor
+\item Tamanho da equipe de marketing
+\item Quantidade de memória RAM do servidor
+\end{enumerate}
+
+\item No contexto de Engenharia de Software, a prototipagem rápida com Streamlit pode ser considerada:
+\begin{enumerate}[label=\alph*)]
+\item Uma prática de validação ágil
+\item Um modelo de banco de dados
+\item Uma técnica de mineração de texto
+\item Um framework de hardware
+\end{enumerate}
+
+\item O PMC auxilia o gestor de projeto porque:
+\begin{enumerate}[label=\alph*)]
+\item Reduz a complexidade ao mapear elementos em blocos visuais
+\item Substitui totalmente metodologias ágeis
+\item Elimina a necessidade de requisitos funcionais
+\item Automatiza o deploy do software
+\end{enumerate}
+
+\item A pasta \texttt{models/} em um projeto típico é responsável por:
+\begin{enumerate}[label=\alph*)]
+\item Armazenar scripts de treinamento
+\item Guardar versões treinadas dos modelos
+\item Gerar relatórios executivos
+\item Documentar metodologias ágeis
+\end{enumerate}
+
+\end{enumerate}
+
+
+\subsection*{Sessão 2 (DISCURSSIVA) }
+
+\begin{enumerate}[resume]
+
+\item Desenhe uma arquitetura de software para um sistema que utiliza Streamlit como interface, banco de dados relacional e modelo de machine learning treinado com Titanic. Explique as camadas envolvidas.
+
+\item Construa um Project Model Canvas (PMC) para um sistema de previsão de evasão de alunos. Destaque os blocos: Problema, Pergunta de Pesquisa, Solução Proposta, Stakeholders e Desenho de Arquitetura.
+
+\item Proponha um modelo de dados (entidades e relacionamentos) para armazenar informações do dataset Titanic em um banco relacional.
+
+\item Compare as vantagens e desvantagens de se adotar arquitetura monolítica em relação à microsserviços no contexto educacional.
+
+\item Explique como os testes unitários contribuem para a qualidade de um sistema baseado em Streamlit.
+
+\item Um aluno organizou a pasta \texttt{core/features/} com funções de limpeza de dados. Explique a importância desse processo no ciclo de ciência de dados.
+
+\item Considere que uma universidade deseja criar um MVP para analisar notas de alunos. Descreva como o Streamlit pode ser utilizado para desenvolver rapidamente essa solução.
+
+\item Explique como o bloco “Desenho de Arquitetura” no PMC pode ser associado ao pipeline de machine learning (\texttt{data/}, \texttt{core/features/}, \texttt{models/}, \texttt{train.py}).
+
+
+\end{enumerate}
+
+
+\clearpage
+% =========================================================
+% REQUISITOS (adicione no preâmbulo do seu Overleaf, se ainda não tiver):
+% \usepackage{enumitem,booktabs,multirow,array}
+% \usepackage{tikz,pgfplots}
+% \pgfplotsset{compat=1.18}
+% \usepackage{caption}
+% =========================================================
+
+\subsection*{Sessão 3 (ENADE)}
+% =========================
+% Q1 (OBJETIVA — ABCD)
+% =========================
+\noindent\textbf{Questão 1 — Protótipos educacionais, MVP e validação com Streamlit (Objetiva)}
+\par\noindent\textbf{Texto-base (Reportagem).} Uma reportagem em portal acadêmico destacou que cursos de Sistemas de Informação em universidades públicas têm adotado estratégias de prototipação rápida para validar hipóteses pedagógicas com baixo custo. Em uma \textit{edtech} universitária, docentes criaram um \textbf{MVP em Python + Streamlit} para testar se um \emph{assistente analítico} melhora a compreensão de métricas (acurácia, precisão, recall e F1) em exercícios com o dataset Titanic. O laboratório possui 12 máquinas, internet instável e restrições de instalação. A coordenação exige governança mínima (versões de \texttt{.csv}, anonimização e documentação).
+\par\noindent O grupo delimitou 4 semanas, definindo um conjunto enxuto de funcionalidades (upload de CSV, pré-processamento padronizado, treino de um modelo simples, visualização de métricas e explicabilidade por coeficientes).
+
+\vspace{0.5em}
+\noindent\textbf{Quadro 1 — Backlog resumido (4 sprints)}
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Item} & \textbf{S1} & \textbf{S2} & \textbf{S3} & \textbf{S4}\\
+\midrule
+Upload/Validação CSV & X &  &  &  \\
+Pré-processamento (\texttt{core/features}) &  & X &  &  \\
+Treino/avaliação (\texttt{train.py}) &  & X &  &  \\
+Métricas/Explicabilidade (\texttt{core/explain}) &  &  & X &  \\
+Tela Streamlit (protótipo) & X &  &  &  \\
+Governança mínima (versão/anonimização) &  &  & X & X \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\textbf{Pergunta.} Considerando o contexto, a opção que melhor justifica a escolha do \textbf{MVP em Streamlit} é:
+\begin{enumerate}[label=\alph*)]
+\item Substituir metodologias ágeis, garantindo entrega contínua sem a necessidade de priorização de backlog.
+\item Alcançar escalabilidade horizontal automática e tolerância a falhas, mesmo com internet instável e sem orquestrador.
+\item Reduzir risco e custo inicial validando hipóteses pedagógicas com uma versão mínima funcional próxima do uso real.
+\item Eliminar requisitos de governança (versionamento e anonimização), pois se trata de prova de conceito em ambiente acadêmico.
+\end{enumerate}
+
+% =========================
+% Q2 (OBJETIVA — V/F)
+% =========================
+\newpage
+\noindent\textbf{Questão 2 — Project Model Canvas (PMC) e alinhamento (Objetiva — V/F)}
+\par\noindent\textbf{Texto-base (Caso).} Em um curso, os alunos preencheram um \textbf{PMC} para o projeto “Risco de Evasão”: Problema (queda na retenção), Pergunta de Pesquisa (quais fatores influenciam), Solução Proposta (MVP em Streamlit com classificação + explicabilidade), Stakeholders (coordenação, docentes, discentes, TI) e Arquitetura (UI, \texttt{core}, dados, docs). A coordenação quer critérios de sucesso explícitos (ex.: protótipo funcional em 4 semanas e \(\geq\) 70\% de satisfação dos usuários).
+
+\vspace{0.5em}
+\noindent\textbf{Quadro 2 — Estrato do PMC (resumo)}
+\begin{center}
+\begin{tabular}{p{0.26\textwidth}p{0.65\textwidth}}
+\toprule
+\textbf{Bloco} & \textbf{Conteúdo}\\\midrule
+Problema & Evasão elevada e pouco entendimento dos fatores.\\
+Pergunta de Pesquisa & Quais variáveis mais contribuem (frequência, horas, renda)?\\
+Solução Proposta & MVP com Streamlit; classificador; explicabilidade.\\
+Stakeholders & Coordenação, Docentes, Discentes, TI.\\
+Arquitetura & Camadas: UI, \texttt{core}, dados, docs (governança mínima).\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\textbf{Afirmações.}
+\begin{enumerate}[label=\Roman*.]
+\item O PMC substitui a necessidade de estabelecer métricas de sucesso, pois já torna a proposta visível.
+\item O PMC contribui para comunicação entre stakeholders e priorização de escopo no curto prazo.
+\item A definição de arquitetura no PMC evita desalinhamento entre intenção (fluxos) e implementação (pastas e módulos).
+\item Em projetos educacionais, o PMC pode dispensar a documentação técnica, desde que haja protótipo funcional.
+\end{enumerate}
+
+\noindent\textbf{Pergunta.} Assinale a alternativa CORRETA:
+\begin{enumerate}[label=\alph*)]
+\item V, V, V, V \qquad
+\item F, V, V, F \qquad
+\item F, F, V, V \qquad
+\item V, F, F, V
+\end{enumerate}
+
+% =========================
+% Q3 (OBJETIVA — ABCD)
+% =========================
+\newpage
+\noindent\textbf{Questão 3 — Arquitetura: monólito em camadas x microsserviços (Objetiva)}
+\par\noindent\textbf{Texto-base (Relato técnico).} Uma empresa júnior discutiu três arranjos para um MVP de 6 semanas, com baixo suporte DevOps: (A) monólito em camadas (\textit{app/}, \textit{core/}, \textit{data/}, \textit{docs/}), (B) microsserviços (UI, pré-processamento, modelos, explicabilidade com mensageria), (C) apenas notebooks compartilhados. O professor exige reprodutibilidade e testes básicos.
+
+\vspace{0.5em}
+\noindent\textbf{Tabela 1 — Comparativo de alternativas}
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Critério} & \textbf{(A)} & \textbf{(B)} & \textbf{(C)}\\
+\midrule
+Sobrecarga operacional & Baixa & Alta & Baixa \\
+Reprodutibilidade & Alta & Média & Baixa \\
+Modularidade & Média/Alta & Alta & Baixa \\
+Aderência a 6 semanas & Alta & Baixa & Média \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\textbf{Pergunta.} A escolha mais coerente para o contexto é:
+\begin{enumerate}[label=\alph*)]
+\item (A) monólito em camadas, pois oferece modularidade interna, menor sobrecarga e melhor reprodutibilidade para um MVP curto.
+\item (B) microsserviços, pois sempre escalam melhor, mesmo sem DevOps e com prazo reduzido.
+\item (C) somente notebooks, pois dispensam testes e documentação.
+\item (B) microsserviços, pois garantem automaticamente governança e CI/CD sem esforço inicial.
+\end{enumerate}
+
+% =========================
+% Q4 (OBJETIVA — ABCD)
+% =========================
+\newpage
+\noindent\textbf{Questão 4 — Governança e LGPD em MVP educacional (Objetiva)}
+\par\noindent\textbf{Texto-base (Nota técnica).} Um MVP usará dados de alunos: idade, sexo, frequência, horas de estudo e nota final. Haverá demonstrações públicas e repositório compartilhado. A coordenação exige: minimização de dados, anonimização/pseudonimização quando possível, consentimento/legítimo interesse, versionamento dos \texttt{.csv} e dicionário de dados.
+
+\vspace{0.5em}
+\noindent\textbf{Tabela 2 — Atributos e sensibilidade}
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Atributo} & \textbf{Necessário ao objetivo?} & \textbf{Sensível?}\\
+\midrule
+Nome & Não (pode ser pseudo-ID) & Sim (identificável) \\
+Idade & Sim & Não \\
+Sexo & Sim (análise de recorte) & Não \\
+Frequência & Sim & Não \\
+Horas de estudo & Sim & Não \\
+Nota final & Sim (alvo/métrica) & Não \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\textbf{Pergunta.} O conjunto de práticas mais alinhado é:
+\begin{enumerate}[label=\alph*)]
+\item Coletar tudo por precaução; publicar planilhas abertas sem histórico para transparência.
+\item Minimizar atributos, anonimizar/pseudonimizar, base legal adequada e versionar datasets com dicionário de dados.
+\item Apenas ofuscar no frontend; manter dados completos no repositório para auditoria.
+\item Substituir governança por termos de uso gerais, sem controle de versões.
+\end{enumerate}
+
+% =========================
+% Q5 (OBJETIVA — V/F)
+% =========================
+\newpage
+\noindent\textbf{Questão 5 — Reprodutibilidade e \texttt{core/features} (Objetiva — V/F)}
+\par\noindent\textbf{Texto-base (Observação de sala).} Alunos relataram resultados divergentes ao treinar o mesmo modelo com o mesmo CSV. O professor propôs: (i) centralizar o pré-processamento em \texttt{core/features/} com \texttt{Pipeline} e \texttt{ColumnTransformer}; (ii) fixar \texttt{random\_state}; (iii) separar \textit{fit} de \textit{transform} para evitar \emph{data leakage}.
+
+\vspace{0.5em}
+\noindent\textbf{Figura 2 — Tempo por etapa (simulado)}
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.78\textwidth,height=0.42\textwidth,
+    ybar, bar width=10pt, enlarge x limits=0.2,
+    symbolic x coords={Ingestão,Pré-proc.,Treino,Avaliação},
+    ylabel={Tempo (s)}]
+\addplot coordinates {(Ingestão,1.2) (Pré-proc.,2.8) (Treino,3.1) (Avaliação,0.7)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+\noindent\textbf{Afirmações.}
+\begin{enumerate}[label=\Roman*.]
+\item Fixar \texttt{random\_state} contribui para reprodutibilidade de partições e treinamento.
+\item Centralizar transformações em pipeline reduz variações manuais entre notebooks.
+\item Aplicar \textit{fit} em todo o dataset antes do \textit{split} elimina \emph{data leakage}.
+\item Separar \textit{fit} (treino) de \textit{transform} (teste) é medida adequada para evitar vazamento.
+\end{enumerate}
+
+\noindent\textbf{Pergunta.} Assinale a alternativa CORRETA:
+\begin{enumerate}[label=\alph*)]
+\item V, V, V, F \qquad
+\item V, F, F, V \qquad
+\item V, V, F, V \qquad
+\item F, V, F, V
+\end{enumerate}
+
+% =========================
+% Q6 (DISCURSIVA)
+% =========================
+\newpage
+\noindent\textbf{Questão 6 — Arquitetura em camadas para MVP com Streamlit (Discursiva)}
+
+\par\noindent\textbf{Texto-base (Cenário).}  
+Um protótipo inicial foi desenvolvido apenas com \textbf{notebooks independentes}, cada qual contendo partes distintas do fluxo de dados: limpeza ad hoc, treinamento de um modelo e cálculo de métricas. Não havia padronização de pastas, tampouco governança sobre versões de dados ou documentação. Como resultado, a reprodutibilidade ficou comprometida.  
+
+A coordenação exige que a equipe evolua para uma \textbf{arquitetura em camadas}, contemplando:  
+- \textbf{UI (Streamlit)}: interface de interação e visualização de métricas.  
+- \textbf{Core}: ingestão, pré-processamento, modelos e explicabilidade.  
+- \textbf{Dados}: armazenamento em camadas (\textit{raw}, \textit{processed}, \textit{models}).  
+- \textbf{Docs}: documentação, PMC, dicionário de dados, justificativas de decisão.  
+
+\vspace{0.5em}
+\noindent\textbf{Figura 3 — Rascunho atual (apenas notebooks soltos)}  
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={draw, rounded corners, align=center, minimum width=5.5cm, minimum height=1.2cm, font=\small}]
+\node (nb1) at (0,0) {Notebook A\\\footnotesize Limpeza ad hoc de dados};
+\node (nb2) at (0,-2) {Notebook B\\\footnotesize Treino de Modelo};
+\node (nb3) at (0,-4) {Notebook C\\\footnotesize Cálculo de Métricas};
+
+\draw[->,thick] (nb1) -- (nb2);
+\draw[->,thick] (nb2) -- (nb3);
+
+\node[below=1.2cm of nb3, draw=none, align=center, text width=12cm, font=\footnotesize] 
+
+\end{tikzpicture}
+\end{center}
+
+\noindent\textbf{Solicitação.}  
+Projete uma \textbf{arquitetura em camadas} substituindo o arranjo acima. Em até 25 linhas, descreva:  
+\begin{enumerate}[label=\roman*)]
+\item Pastas e módulos, detalhando suas responsabilidades.  
+\item Fluxo de dados (\textit{upload} $\to$ \textit{features} $\to$ treino $\to$ métricas $\to$ explicabilidade).  
+\item Pontos de teste unitário e de integração.  
+\item Artefatos versionados e práticas mínimas de governança (LGPD).  
+\end{enumerate}
+
+% =========================
+% Q7 (DISCURSIVA)
+% =========================
+\newpage
+\noindent\textbf{Questão 7 — Project Model Canvas (PMC) para “Risco de Evasão” (Discursiva)}
+\par\noindent\textbf{Texto-base (Quadro).} O curso quer um PMC completo, com \textbf{indicadores de sucesso} e \textbf{riscos}. 
+\vspace{0.5em}
+
+\noindent\textbf{Tabela 3 — Estrutura PMC a preencher}
+\begin{center}
+\begin{tabular}{p{0.28\textwidth}p{0.65\textwidth}}
+\toprule
+\textbf{Bloco} & \textbf{Conteúdo (preencher/justificar)}\\\midrule
+Contexto & \\
+Problema & \\
+Pergunta de Pesquisa & \\
+Solução Proposta & \\
+Stakeholders & \\
+Arquitetura (alto nível) & \\
+Critérios de Sucesso & \\
+Riscos e Mitigações & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\textbf{Solicitação.} Preencha a tabela acima com um PMC \textbf{consistente e verificável} para o MVP (Streamlit + classificação + explicabilidade). Em até 25 linhas, justifique escolhas e indique métricas de sucesso (técnicas e de adoção).
+
+% =========================
+% Q8 (DISCURSIVA)
+% =========================
+\newpage
+\noindent\textbf{Questão 8 — Modelo de dados relacional (Titanic) e normalização (Discursiva)}
+\par\noindent\textbf{Texto-base (Amostra).} Pretende-se armazenar o Titanic em modelo relacional para treinos e auditorias.
+
+\noindent\textbf{Tabela 4 — Exemplo (amostra sintética)}
+\begin{center}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{passenger\_id} & \textbf{name} & \textbf{sex} & \textbf{age} & \textbf{pclass} & \textbf{fare} & \textbf{survived}\\
+\midrule
+1 & Allen, Miss… & f & 29 & 1 & 211.3 & 1\\
+2 & Moran, Mr… & m & 33 & 3 & 8.0 & 0\\
+3 & … & … & … & … & … & …\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\textbf{Solicitação.} Em até 25 linhas, apresente: (i) \textbf{DER} (entidades/relacionamentos) com chaves; (ii) normalização essencial (1FN–3FN) e atributos derivados/lookup; (iii) como o esquema apoia \textit{auditoria de features} e \textit{versionamento de artefatos}.
+
+% =========================
+% Q9 (DISCURSIVA)
+% =========================
+\newpage
+\noindent\textbf{Questão 9 — Pipeline de ML, validação e métricas (Discursiva)}
+\par\noindent\textbf{Texto-base (Resultados simulados).} Dois modelos foram testados (Logística e Árvore). A turma notou variação alta entre execuções devido a splits aleatórios.
+
+\noindent\textbf{Tabela 5 — Métricas médias (simuladas)}
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Modelo} & \textbf{Acc} & \textbf{Prec} & \textbf{Rec} & \textbf{F1}\\
+\midrule
+Logística & 0.81 & 0.79 & 0.76 & 0.77\\
+Árvore & 0.79 & 0.75 & 0.78 & 0.76\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\textbf{Figura 4 — Curvas (simuladas)}
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=0.75\textwidth,height=0.42\textwidth,
+xlabel={1 - Especificidade},ylabel={Sensibilidade},xmin=0,xmax=1,ymin=0,ymax=1,grid=both]
+\addplot+[mark=none,thick] coordinates {(0,0) (0.1,0.6) (0.2,0.75) (0.35,0.82) (0.5,0.88) (1,1)};
+\addplot+[mark=none,thick,dashed] coordinates {(0,0) (0.15,0.55) (0.3,0.7) (0.5,0.8) (0.7,0.86) (1,1)};
+\addplot[dotted] coordinates {(0,0) (1,1)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+\noindent\textbf{Solicitação.} Em até 25 linhas, descreva um \textbf{pipeline reprodutível} com: \textit{split} estratificado, \texttt{Pipeline}+\texttt{ColumnTransformer}, \texttt{random\_state}, \textit{cross-validation}, prevenção de \emph{leakage} e relatório de métricas/intervalos de confiança. Comente trade-offs dos modelos dados os resultados.
+
+% =========================
+% Q10 (DISCURSIVA)
+% =========================
+\newpage
+\noindent\textbf{Questão 10 — Deploy e governança em contexto restrito (Discursiva)}
+\par\noindent\textbf{Texto-base (Cenário).} O laboratório tem internet instável e sem contêineres. O curso quer \textbf{demonstrações públicas} e \textbf{trilhas de auditoria} simples.
+
+\noindent\textbf{Tabela 6 — Restrições e metas}
+\begin{center}
+\begin{tabular}{p{0.48\textwidth}p{0.43\textwidth}}
+\toprule
+\textbf{Restrições} & \textbf{Metas}\\
+\midrule
+Sem orquestrador; PCs heterogêneos & Execução local/portable \\
+Sem dados sensíveis em Git & Anonimização/pseudonimização \\
+Pouco suporte TI & Documentação mínima e clara \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\textbf{Solicitação.} Em até 25 linhas, proponha uma \textbf{estratégia de execução e governança}: empacotamento local (venv/requirements), dados fora do repositório com \texttt{.gitignore}, controle de versões de \texttt{.csv}, dicionário de dados, guia de execução, auditoria leve de predições e plano de demo offline/online.
+
+
+
+% =========================
+% Q1 OBJETIVA
+% =========================
+\newpage
+\noindent\textbf{Questão 11 — Protótipos, MVP e Metodologia Ágil (Objetiva)}
+\par\noindent\textbf{Texto-base (Reportagem).}  
+Uma reportagem em portal de tecnologia educacional destacou que universidades vêm utilizando o \textbf{MVP (Minimum Viable Product)} como prática para validar hipóteses pedagógicas de forma rápida e com baixo custo. Em um curso de Sistemas de Informação, professores propuseram que os alunos desenvolvessem um \textbf{MVP em Python + Streamlit}, cujo objetivo seria testar se uma ferramenta analítica auxiliaria na compreensão de métricas de avaliação de modelos (acurácia, precisão, recall e F1).  
+
+O laboratório possuía 12 computadores, conexão instável e sem suporte a contêineres. A coordenação exigiu que o desenvolvimento fosse feito em até 4 semanas, utilizando práticas ágeis. O backlog inicial incluía: upload e validação de CSV, pré-processamento padronizado, treino de modelo simples e visualização de métricas.  
+
+\noindent\textbf{Quadro 1 — Exemplo de backlog distribuído em 4 sprints}
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Funcionalidade} & \textbf{Sprint 1} & \textbf{Sprint 2} & \textbf{Sprint 3} & \textbf{Sprint 4}\\
+\midrule
+Upload/Validação CSV & X &  &  &  \\
+Pré-processamento (core/features) &  & X &  &  \\
+Treino/Avaliação (train.py) &  & X &  &  \\
+Visualização Métricas &  &  & X &  \\
+Governança mínima (versão/anonimização) &  &  &  & X \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\textbf{Pergunta.} Considerando o contexto, a opção que melhor justifica a escolha de um \textbf{MVP em Streamlit aliado a metodologias ágeis} é:
+\begin{enumerate}[label=\alph*)]
+\item Eliminar a necessidade de governança e documentação, já que se trata de ambiente acadêmico.  
+\item Reduzir custo e risco inicial, validando hipóteses com entregas incrementais em ambiente restrito.  
+\item Garantir escalabilidade automática, mesmo sem infraestrutura de DevOps disponível.  
+\item Substituir metodologias ágeis por entregas únicas e completas no fim do projeto.  
+\end{enumerate}
+
+\vfill
+
+% =========================
+% Q2 OBJETIVA
+% =========================
+\newpage
+\noindent\textbf{Questão 12 — Estrutura de Projeto e PMC (Objetiva — V/F)}  
+\par\noindent\textbf{Texto-base (Caso).}  
+Um grupo de alunos estruturou seu repositório de projeto com as seguintes pastas: \texttt{app/} (UI), \texttt{core/} (pré-processamento e modelos), \texttt{data/} (datasets) e \texttt{docs/} (PMC, dicionário e justificativas). Além disso, preencheram um \textbf{Project Model Canvas (PMC)} contendo: Problema (evasão escolar), Pergunta (quais fatores influenciam), Solução (MVP com Streamlit), Stakeholders (coordenação, docentes, discentes, TI).  
+
+\noindent\textbf{Afirmações.}
+\begin{enumerate}[label=\Roman*.]
+\item O PMC elimina a necessidade de métricas de sucesso, pois já torna a proposta visível.  
+\item A estrutura modular de pastas favorece a reprodutibilidade e organização do projeto.  
+\item O PMC auxilia na comunicação entre os diferentes stakeholders envolvidos.  
+\item Projetos acadêmicos dispensam governança de dados, visto que são apenas protótipos.  
+\end{enumerate}
+
+\noindent\textbf{Pergunta.} Assinale a alternativa CORRETA:
+\begin{enumerate}[label=\alph*)]
+\item V, V, V, V  
+\item F, V, V, F  
+\item F, F, V, V  
+\item V, V, F, F  
+\end{enumerate}
+
+\vfill
+
+% =========================
+% Q3 DISCURSIVA
+% =========================
+\newpage
+\noindent\textbf{Questão 13 — Arquitetura em camadas para MVP (Discursiva)}  
+\par\noindent\textbf{Texto-base (Cenário).}  
+Inicialmente, os alunos criaram três notebooks separados: um para limpeza de dados, outro para treino de modelos e outro para métricas. Não havia padronização de diretórios nem versionamento de datasets. O professor solicitou a adoção de uma \textbf{arquitetura em camadas}, contemplando:  
+- \textbf{UI (Streamlit)} para interação;  
+- \textbf{Core} para ingestão, features e explicabilidade;  
+- \textbf{Dados} (\texttt{raw}, \texttt{processed}, \texttt{models});  
+- \textbf{Docs} para PMC, dicionário e justificativas.  
+
+\noindent\textbf{Solicitação.}  
+Descreva como você organizaria o repositório do MVP, especificando:  
+\begin{enumerate}[label=\roman*)]
+\item Estrutura de pastas e funções de cada camada;  
+\item Fluxo de dados (upload → features → treino → métricas → explicabilidade);  
+\item Pontos de teste unitário e de integração;  
+\item Práticas mínimas de governança e LGPD.  
+\end{enumerate}
+
+
+% =========================
+% Q4 DISCURSIVA
+% =========================
+\newpage
+\noindent\textbf{Questão 14 — Justificativa de escolha do Python (Discursiva)}  
+\par\noindent\textbf{Texto-base (Discussão).}  
+Durante a disciplina, alguns alunos sugeriram o uso de R ou Java em vez de Python para o MVP. O professor destacou que Python possui:  
+- ampla comunidade,  
+- bibliotecas consolidadas para ciência de dados (pandas, scikit-learn, matplotlib),  
+- suporte para prototipação rápida com Streamlit,  
+- integração facilitada com ferramentas de IA generativa.  
+
+Entretanto, lembrou que Python apresenta limitações de desempenho em cenários de grande escala.  
+
+\noindent\textbf{Solicitação.}  
+Explique, em até 25 linhas, por que Python é adequado para o desenvolvimento do MVP neste contexto educacional, considerando benefícios, limitações e alinhamento pedagógico.
+
+
+
+% =========================
+% Q5 DISCURSIVA FÁCIL
+% =========================
+\newpage
+\noindent\textbf{Questão 15 — Metodologia Ágil em projetos acadêmicos}  
+\par\noindent\textbf{Texto-base.}  
+A coordenação solicitou que os alunos utilizem Scrum em 4 sprints semanais. Alguns estudantes defenderam que seria melhor entregar tudo de uma só vez ao final. O professor explicou que a divisão em sprints possibilita feedback rápido, maior visibilidade do progresso e redução de riscos.  
+
+\noindent\textbf{Solicitação.}  
+Explique, em até 15 linhas, a importância da divisão em sprints e backlog para projetos acadêmicos de curta duração, como o desenvolvimento de um MVP.
+
+\vspace{0.5cm}
+\noindent\textbf{Espaço para resposta do aluno:}
+
+
+
+
+
+% =========================
+% GABARITO E RESPOSTAS-MODELO
+% =========================
+\clearpage
+
+
+\clearpage
+\section*{Sessão de Respostas}
+
+\subsection*{Sessão 1}
+\begin{enumerate}
+  \item \textbf{b)} MVP — valida hipóteses com baixo custo e rapidez.
+  \item \textbf{b)} Classificação supervisionada — prever \texttt{Survived}/\texttt{Fare}.
+  \item \textbf{c)} PMC — blocos como Problema, Pergunta, Solução, Arquitetura.
+  \item \textbf{c)} PMC dá visão integrada dos elementos do projeto.
+  \item \textbf{a)} Arquitetura monolítica — um único código com várias responsabilidades.
+  \item \textbf{b)} \texttt{core/features/} — transformações e pipelines de dados.
+  \item \textbf{a)} \texttt{train.py} — executa treino dos modelos.
+  \item \textbf{b)} Streamlit valida rapidamente ideias com stakeholders.
+  \item \textbf{b)} Testes unitários validam partes isoladas automaticamente.
+  \item \textbf{a)} \texttt{data/} armazena datasets (treino/teste).
+  \item \textbf{a)} Microsserviços — independência e escalabilidade modular.
+  \item \textbf{a)} “Desenho de Arquitetura” representa modelo/fluxos do sistema.
+  \item \textbf{b)} Pré-processamento torna dados brutos prontos para análise.
+  \item \textbf{a)} Streamlit acelera a criação de apps interativos.
+  \item \textbf{b)} \texttt{train.py} ≈ etapa de treino/validação no pipeline.
+  \item \textbf{a)} Titanic: prever sobrevivência a partir de variáveis.
+  \item \textbf{a)} Decisão entre monólito/microsserviços depende de requisitos/escala.
+  \item \textbf{a)} Prototipagem com Streamlit = prática de validação ágil.
+  \item \textbf{a)} PMC reduz complexidade mapeando elementos em blocos.
+  \item \textbf{b)} \texttt{models/} guarda versões treinadas dos modelos.
+\end{enumerate}
+
+\subsection*{Sessão 2}
+
+\paragraph{(21) Arquitetura com Streamlit, BD relacional e ML (Titanic).}
+\textbf{Camadas esperadas:}
+UI (\textit{app/} com Streamlit) → Serviço de aplicação (\textit{core/}: \texttt{data}, \texttt{features}, \texttt{models}, \texttt{explain}) → Persistência (BD relacional para tabelas de usuários/execuções e diretório \textit{data/models} para artefatos \texttt{.pkl}). 
+\textbf{Fluxo:} Upload CSV → pré-processamento (\textit{features}) → treino/avaliação (\textit{models}) → métricas/explicabilidade (\textit{explain}) → exibição na UI.
+
+\paragraph{(22) PMC para evasão estudantil.}
+\textbf{Contexto:} altas taxas de evasão. 
+\textbf{Problema:} identificar risco de evasão por aluno. 
+\textbf{Pergunta:} quais fatores (frequência, horas de estudo, renda) mais influenciam? 
+\textbf{Solução Proposta:} MVP em Streamlit com modelo classificatório + explicabilidade. 
+\textbf{Desenho de Arquitetura:} UI (Streamlit), \textit{core} (pipelines/treino), dados (CSV/BD), docs (PMC/arquitetura/governança). 
+\textbf{Stakeholders:} coordenação, docentes, TI, discentes.
+
+\paragraph{(23) Modelo de dados (Titanic).}
+\textbf{Entidades e atributos essenciais:}
+\texttt{Passageiro}(id, nome, idade, sexo, classe, tarifa, cabine?, embarque?) e atributo alvo \texttt{sobreviveu}. 
+Opcional: \texttt{Viagem}(id, navio, data), relação 1:N \texttt{Viagem}→\texttt{Passageiro}. Chaves: \texttt{Passageiro.id}, \texttt{Viagem.id}.
+
+\paragraph{(24) Monólito vs. Microsserviços (educacional).}
+\textbf{Monólito:} simples de iniciar, menos sobrecarga, porém menor escalabilidade e acoplamento alto. 
+\textbf{Microsserviços:} independência e escalabilidade por domínio, porém aumenta complexidade operacional (devops/observabilidade). 
+\textbf{Contexto acadêmico:} monólito para MVPs; microsserviços quando a disciplina exige arquitetura distribuída.
+
+\paragraph{(25) Valor dos testes unitários no Streamlit.}
+Garantem regressão zero em funções críticas (\texttt{read\_csv\_smart}, inferência de colunas, pipeline de pré-processamento, métricas). 
+Aumentam confiança ao refatorar; suportam avaliação automatizada em sala (CI local).
+
+\paragraph{(26) Importância de \texttt{core/features/} (limpeza/prep).}
+Remove vieses de entrada (nulos/outliers), padroniza escalas, codifica categorias (one-hot), assegura consistência entre treino e inferência (mesmo pipeline). Impacto direto na qualidade do modelo.
+
+\paragraph{(27) MVP para notas de alunos com Streamlit.}
+Upload do CSV, seleção de alvo (\texttt{nota\_final≥80?}), botão “Treinar”, exibição de métricas (acurácia/F1 ou RMSE), ranking de variáveis (coeficientes/odds). Chat regrado explica métricas. Entrega rápida p/ validação com coordenação.
+
+\paragraph{(28) Ligar “Desenho de Arquitetura” (PMC) ao pipeline de ML.}
+O bloco descreve os componentes mapeando: UI (\textit{app/}), ingestão/validação (\textit{core/data}), pré-processamento (\textit{core/features}), treino/avaliação (\textit{core/models}), explicabilidade (\textit{core/explain}) e armazenamento (\textit{data/}). O desenho evita lacunas entre intenção e implementação.
+
+
+
+
+
+
+
+
+
+\end{document}
+
+
+\subsection*{Sessão 3}
+
+\textbf{1)} \textbf{c)} MVP — valida hipóteses rápido e barato.  
+
+\textbf{2)} \textbf{b)} PMC — melhora comunicação e alinhamento.  
+
+\textbf{3)} \textbf{a)} Monólito em camadas — mais simples e reprodutível.  
+
+\textbf{4)} \textbf{b)} Governança — anonimização, minimização e versionamento.  
+
+\textbf{5)} \textbf{c)} Reprodutibilidade — uso de \texttt{random\_state} e pipeline.  
+
+
+\textbf{6)} Na questão sobre arquitetura em camadas, eu responderia que a melhor forma de organizar um MVP é separar bem as responsabilidades em pastas e módulos. Eu colocaria uma pasta \textit{app/} para a interface em Streamlit, que é o que o usuário vai visualizar. Depois, uma pasta \textit{core/} onde ficariam as rotinas principais como ingestão de dados, tratamento, criação de variáveis, treinamento dos modelos e a parte de explicabilidade. Teria também uma pasta \textit{data/} dividida em dados brutos, processados e modelos treinados. Por fim, uma pasta \textit{docs/} com o Project Model Canvas, o dicionário de dados e as decisões de projeto. O fluxo seria o upload do CSV, depois a validação do schema, a transformação em features, o treino dos modelos, as métricas e por fim a explicabilidade no app. Para garantir qualidade eu faria testes unitários das funções e testes de integração do pipeline inteiro. Na parte de governança, eu faria anonimização ou pseudonimização dos alunos, versionamento dos arquivos de dados e uso de \texttt{.gitignore} para não expor informações sensíveis. Isso deixaria o projeto mais organizado, reprodutível e dentro de práticas mínimas da LGPD.
+
+\textbf{7)} No PMC eu descreveria que o problema é a evasão alta dos alunos e a pergunta principal é quais variáveis mais influenciam nisso. A solução pensada é criar um MVP em Streamlit que usa um modelo preditivo simples com explicabilidade. Os stakeholders principais seriam a coordenação, os alunos, os professores e a equipe de TI. A arquitetura seria formada por UI, Core, Dados e Docs, de forma simples e modular. Como critérios de sucesso, eu definiria entregar um protótipo funcional em até 4 semanas, com F1 acima de 0,75 e pelo menos 70\% de aceitação pelos usuários. Os riscos que vejo são dados faltantes, que podem ser resolvidos com imputação, viés do modelo, que deve ser avaliado com testes em diferentes grupos, e suporte de TI limitado, que pode ser mitigado rodando em ambiente local e com um guia simples para execução. Esse PMC ajudaria a todos entenderem melhor o escopo do projeto.
+
+\textbf{8)} No modelo relacional do Titanic eu criaria uma tabela Passenger com atributos como id, sexo, idade, classe e tarifa, e outra tabela para nomes, já que um passageiro pode ter nomes diferentes dependendo da fonte, além de uma tabela Embarked para os portos. A chave primária seria o passenger\_id e a chave estrangeira ligaria ao código do porto. Assim o modelo ficaria normalizado até a terceira forma normal, evitando redundâncias e melhorando a consistência. Para auditoria eu criaria uma tabela Dataset\_Version, onde cada versão dos dados ficaria registrada com timestamp e origem. Também faria uma tabela Feature\_Store ligando cada versão às features usadas. Os modelos treinados ficariam salvos na pasta de dados com versionamento e checksum, garantindo que sempre sabemos com quais dados e parâmetros cada modelo foi treinado. Isso é fundamental para reprodutibilidade e transparência.
+
+\textbf{9)} No pipeline de machine learning eu colocaria primeiro a divisão estratificada em treino e teste. Depois usaria um ColumnTransformer dentro de um Pipeline para tratar os dados, fazendo imputação de valores, escalonamento de variáveis numéricas e one-hot encoding das categóricas. Eu fixaria o random\_state para garantir reprodutibilidade. Usaria validação cruzada com StratifiedKFold e teria como métrica principal o F1, já que é importante equilibrar precisão e recall em evasão. Evitaria leakage garantindo que o fit só é feito nos dados de treino. Sobre modelos, usaria regressão logística como baseline porque é interpretável, mas também testaria árvore de decisão para capturar relações não lineares, cuidando de aplicar pruning para não superajustar. No fim eu relataria os resultados com média e desvio padrão das métricas. Essa seria minha justificativa como aluno.
+
+\textbf{10)} Para o deploy do MVP, eu usaria um ambiente virtual com \texttt{venv} e listaria dependências em \texttt{requirements.txt}. Criaria um script simples, como \texttt{make run}, para rodar a aplicação. Os dados não ficariam no git, usaria \texttt{.gitignore}. Para demonstrações, faria uma versão offline com CSV sintético, evitando expor dados reais. No README eu colocaria um guia de execução passo a passo. Sobre governança, usaria pseudo-IDs para os alunos, manteria um dicionário de dados e versionaria os CSVs por data. Também criaria logs leves com timestamp, versão do modelo e resultado da predição, para garantir rastreabilidade. Isso garante que o MVP é reprodutível, seguro e cumpre os requisitos mínimos de LGPD.
+
+
+
+
+
+% =========================
+% Q1 OBJETIVA
+% =========================
+\newpage
+\noindent\textbf{Questão 16 — Governança de dados e LGPD (Objetiva)}  
+\par\noindent\textbf{Texto-base (Reportagem).}  
+Uma reportagem do Comitê de Ética em Pesquisa relatou que instituições de ensino superior estão enfrentando dificuldades para utilizar dados de alunos em pesquisas acadêmicas. A Lei Geral de Proteção de Dados (LGPD) exige:  
+- \textbf{minimização} (usar apenas os atributos necessários),  
+- \textbf{anonimização ou pseudonimização} quando possível,  
+- \textbf{base legal} clara (consentimento, legítimo interesse, obrigação legal),  
+- \textbf{responsabilidade e prestação de contas}.  
+
+Um curso de Sistemas de Informação deseja publicar datasets anonimizados contendo: idade, sexo, frequência, horas de estudo e nota final. O nome e o CPF foram excluídos, substituídos por identificadores sintéticos.  
+
+\noindent\textbf{Tabela 1 — Atributos planejados para publicação}
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Atributo} & \textbf{Necessário?} & \textbf{Sensível?} \\
+\midrule
+Identificador sintético & Sim & Não \\
+Idade & Sim & Não \\
+Sexo & Sim & Não \\
+Frequência & Sim & Não \\
+Horas de estudo & Sim & Não \\
+Nota final & Sim & Não \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\textbf{Pergunta.} A opção que melhor representa a adequação à LGPD é:
+\begin{enumerate}[label=\alph*)]
+\item Publicar o dataset sem restrições, pois dados acadêmicos não são considerados pessoais.  
+\item Manter apenas atributos necessários, com pseudo-ID e dicionário de dados, atendendo à minimização e anonimização.  
+\item Substituir a anonimização por termos de uso, deixando todos os dados acessíveis para reprodutibilidade.  
+\item Coletar todos os atributos originais para preservar a integridade, mesmo que não sejam necessários ao objetivo.  
+\end{enumerate}
+
+\vfill
+
+% =========================
+% Q2 OBJETIVA
+% =========================
+\newpage
+\noindent\textbf{Questão 17 — Modelagem de Dados e DAMA (Objetiva — V/F)}  
+\par\noindent\textbf{Texto-base (Nota técnica).}  
+O guia do \textbf{DAMA-DMBOK} destaca que a governança de dados deve incluir qualidade, segurança, arquitetura, armazenamento e metadados. Em uma disciplina, os alunos foram desafiados a projetar um modelo relacional normalizado para armazenar avaliações de disciplinas, contendo tabelas \texttt{Aluno}, \texttt{Disciplina}, \texttt{Turma} e \texttt{Avaliação}.  
+
+\noindent\textbf{Afirmações.}
+\begin{enumerate}[label=\Roman*.]
+\item A normalização até 3FN evita redundância e inconsistências, mesmo em protótipos.  
+\item O gerenciamento de metadados é dispensável em contextos acadêmicos, já que o dicionário de dados não agrega valor.  
+\item O DAMA recomenda integrar qualidade de dados e segurança desde as fases iniciais do projeto.  
+\item Auditorias de datasets podem ser facilitadas com versionamento de artefatos (datasets e modelos).  
+\end{enumerate}
+
+\noindent\textbf{Pergunta.} Assinale a alternativa CORRETA:
+\begin{enumerate}[label=\alph*)]
+\item V, F, V, V  
+\item V, V, F, V  
+\item F, V, V, V  
+\item V, F, F, F  
+\end{enumerate}
+
+\vfill
+
+% =========================
+% Q3 DISCURSIVA
+% =========================
+\newpage
+\noindent\textbf{Questão 18 — Modelo Relacional e Auditoria (Discursiva)}  
+\par\noindent\textbf{Texto-base (Exemplo).}  
+Pretende-se estruturar os dados de um sistema de monitoramento acadêmico em um modelo relacional. O dataset inclui: aluno (nome, matrícula, idade), disciplina (código, carga horária), turma (período, professor), avaliação (nota, frequência).  
+
+\noindent\textbf{Solicitação.}  
+Apresente, em até 25 linhas, uma proposta de modelo de dados que:  
+\begin{enumerate}[label=\roman*)]
+\item Represente as entidades e relacionamentos com chaves primárias e estrangeiras;  
+\item Aplique normalização até a 3FN;  
+\item Inclua tabelas auxiliares de auditoria e versionamento de datasets.  
+\end{enumerate}
+
+\vspace{0.5cm}
+\noindent\textbf{Espaço para resposta do aluno:}
+
+\vspace{9cm}
+\hrule
+\vspace{0.5cm}
+\hrule
+\vspace{0.5cm}
+\hrule
+
+% =========================
+% Q4 DISCURSIVA
+% =========================
+\newpage
+\noindent\textbf{Questão 19 — IA Generativa e Arquitetura de Sistemas (Discursiva)}  
+\par\noindent\textbf{Texto-base (Reportagem).}  
+Empresas de tecnologia educacional começaram a adotar \textbf{IA generativa} para gerar explicações personalizadas e relatórios automáticos. Entretanto, a integração dessas ferramentas exige atenção à arquitetura:  
+- Camada de dados segura e anonimizada,  
+- API para comunicação com modelos generativos,  
+- Mecanismos de cache e monitoramento de custos,  
+- Logs para auditoria e transparência.  
+
+\noindent\textbf{Solicitação.}  
+Desenhe, em até 25 linhas, uma arquitetura de referência para integrar IA generativa em um MVP educacional com Streamlit, explicando os módulos, fluxos de dados e pontos de governança.
+
+\vspace{0.5cm}
+\noindent\textbf{Espaço para resposta do aluno:}
+
+\vspace{9cm}
+\hrule
+\vspace{0.5cm}
+\hrule
+\vspace{0.5cm}
+\hrule
+
+% =========================
+% Q5 DISCURSIVA FÁCIL
+% =========================
+\newpage
+\noindent\textbf{Questão 20 — Deploy Local e Governança Mínima (Discursiva — Fácil)}  
+\par\noindent\textbf{Texto-base (Cenário).}  
+O laboratório possui internet instável e não utiliza contêineres. O professor solicitou que o deploy fosse feito em execução local com \texttt{venv} e \texttt{requirements.txt}, garantindo minimização de dados e documentação mínima.  
+
+\noindent\textbf{Solicitação.}  
+Explique, em até 15 linhas, como seria possível realizar o deploy de forma local e portátil, incluindo práticas de governança como versionamento de CSVs e guia de execução.
+
+% Q1 OBJETIVA
+% =========================
+\newpage
+\noindent\textbf{Questão 21 — PMC, Ágil e Arquitetura (Objetiva)}  
+\par\noindent\textbf{Texto-base (Caso).}  
+Uma equipe de alunos elaborou um \textbf{Project Model Canvas (PMC)} para um MVP de predição de evasão. O projeto prevê 5 sprints de 1 semana, cada qual entregando uma parte incremental: ingestão de dados, pipeline de features, treino, explicabilidade e UI. A arquitetura planejada foi um \textbf{monólito em camadas} com as pastas: \texttt{app/} (Streamlit), \texttt{core/} (dados/modelos), \texttt{data/} (raw, processed, models), \texttt{docs/} (PMC, dicionário).  
+
+A coordenação apontou riscos: prazo curto, pouca infraestrutura de TI, alta exigência de reprodutibilidade.  
+
+\noindent\textbf{Quadro 1 — Resumo do PMC}  
+\begin{center}
+\begin{tabular}{p{0.25\textwidth}p{0.65\textwidth}}
+\toprule
+\textbf{Bloco} & \textbf{Conteúdo} \\
+\midrule
+Problema & Evasão crescente sem indicadores claros. \\
+Solução & MVP em Streamlit com classificação + explicabilidade. \\
+Stakeholders & Coordenação, docentes, discentes, TI. \\
+Critérios & MVP em 5 semanas; F1 $\geq$ 0,75; aceitação $\geq$ 70\%. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\textbf{Pergunta.} Considerando o contexto, a melhor justificativa para escolher o monólito em camadas é:
+\begin{enumerate}[label=\alph*)]
+\item Garantir escalabilidade automática em nuvem, mesmo sem DevOps.  
+\item Minimizar sobrecarga técnica, mantendo modularidade e reprodutibilidade dentro do prazo.  
+\item Eliminar a necessidade de governança e versionamento, já que se trata de protótipo.  
+\item Substituir metodologias ágeis por execução sequencial, simplificando entregas.  
+\end{enumerate}
+
+\vfill
+
+% =========================
+% Q2 OBJETIVA V/F
+% =========================
+\newpage
+\noindent\textbf{Questão 22 — DAMA, LGPD e Auditoria (Objetiva — V/F)}  
+\par\noindent\textbf{Texto-base (Nota técnica).}  
+Uma universidade quer integrar governança de dados em projetos de machine learning educacional. Foi proposto seguir recomendações do \textbf{DAMA-DMBOK} e da \textbf{LGPD}, incluindo: qualidade, segurança, metadados, versionamento e anonimização.  
+
+\noindent\textbf{Afirmações.}
+\begin{enumerate}[label=\Roman*.]
+\item O DAMA recomenda integração de qualidade de dados desde a concepção, mesmo em protótipos.  
+\item O dicionário de dados é opcional em MVPs, pois a normalização já garante entendimento.  
+\item A LGPD exige minimização, base legal e anonimização/pseudonimização sempre que possível.  
+\item Versionar datasets e modelos favorece auditoria e reprodutibilidade.  
+\end{enumerate}
+
+\noindent\textbf{Pergunta.} Assinale a alternativa CORRETA:  
+\begin{enumerate}[label=\alph*)]
+\item V, F, V, V  
+\item V, V, F, F  
+\item F, F, V, V  
+\item V, F, F, V  
+\end{enumerate}
+
+\vfill
+
+% =========================
+% Q3 DISCURSIVA
+% =========================
+\newpage
+\noindent\textbf{Questão 23 — Modelo Relacional com Auditoria (Discursiva)}  
+\par\noindent\textbf{Texto-base (Exemplo).}  
+Um dataset de desempenho acadêmico inclui: aluno (matrícula, nome, idade), disciplina (código, carga horária), turma (semestre, professor), avaliação (nota, frequência). O coordenador exige: normalização até 3FN, integridade referencial e mecanismos de versionamento de datasets para auditoria.  
+
+\noindent\textbf{Solicitação.}  
+Em até 25 linhas, apresente uma proposta de modelo de dados que:  
+\begin{enumerate}[label=\roman*)]
+\item Estruture entidades, atributos, chaves primárias/estrangeiras;  
+\item Aplique normalização até a 3FN;  
+\item Inclua tabelas auxiliares para versionamento de datasets e auditoria de alterações.  
+\end{enumerate}
+
+\vspace{0.5cm}
+\noindent\textbf{Espaço para resposta do aluno:}
+
+\vspace{9cm}
+\hrule
+\vspace{0.5cm}
+\hrule
+\vspace{0.5cm}
+\hrule
+
+% =========================
+% Q4 DISCURSIVA
+% =========================
+\newpage
+\noindent\textbf{Questão 24 — Arquitetura com IA Generativa (Discursiva)}  
+\par\noindent\textbf{Texto-base (Reportagem).}  
+Cursos estão experimentando \textbf{IA generativa} para elaborar relatórios automáticos e tutoriais. Contudo, a arquitetura deve equilibrar custo, governança e privacidade. São recomendados:  
+- API para integração com modelo generativo,  
+- camada de dados anonimizados,  
+- cache para reduzir custos,  
+- logs para auditoria,  
+- documentação mínima no \texttt{docs/}.  
+
+\noindent\textbf{Solicitação.}  
+Em até 25 linhas, proponha uma arquitetura de referência que incorpore IA generativa em MVP acadêmico. Explique os módulos, os fluxos de dados e como tratar riscos de custo, privacidade e auditoria.  
+
+\vspace{0.5cm}
+\noindent\textbf{Espaço para resposta do aluno:}
+
+\vspace{9cm}
+\hrule
+\vspace{0.5cm}
+\hrule
+\vspace{0.5cm}
+\hrule
+
+% =========================
+% Q5 DISCURSIVA MÉDIA
+% =========================
+\newpage
+\noindent\textbf{Questão 25 — Deploy Local com Governança (Discursiva — Média)}  
+\par\noindent\textbf{Texto-base (Cenário).}  
+Um laboratório acadêmico não possui contêineres nem orquestrador. O professor exigiu: execução local em \texttt{venv}, \texttt{requirements.txt}, \texttt{.gitignore} para dados, versionamento de \texttt{.csv} e guia de execução.  
+
+\noindent\textbf{Solicitação.}  
+Em até 15 linhas, descreva como realizar o deploy local de um MVP de forma portátil, incluindo práticas mínimas de governança e plano de demonstração offline.  
+
+
+
+% =========================
+% Q1 OBJETIVA
+% =========================
+\newpage
+\noindent\textbf{Questão 26 — MVP e Prototipação (Objetiva)}  
+\par\noindent\textbf{Texto-base.}  
+Um grupo de alunos decidiu criar um MVP em \textbf{Python + Streamlit} para prever risco de evasão de estudantes. O protótipo deveria ser feito em 4 semanas, apenas com funcionalidades básicas: upload de CSV, pré-processamento, treino de modelo simples e visualização de métricas.  
+
+\noindent\textbf{Pergunta.} A principal vantagem de usar um MVP nesse contexto é:
+\begin{enumerate}[label=\alph*)]
+\item Garantir escalabilidade automática para milhares de usuários.  
+\item Validar hipóteses de forma rápida e barata antes de investir em uma solução completa.  
+\item Dispensar governança e documentação, já que é apenas um teste inicial.  
+\item Substituir metodologias ágeis por execução sem sprints.  
+\end{enumerate}
+
+\vfill
+
+% =========================
+% Q2 OBJETIVA V/F
+% =========================
+\newpage
+\noindent\textbf{Questão 27 — Governança de Dados e LGPD (Objetiva — V/F)}  
+\par\noindent\textbf{Texto-base.}  
+Um MVP usa dados de alunos (idade, frequência, notas). O professor exige que a equipe respeite a LGPD e implemente práticas mínimas de governança.  
+
+\noindent\textbf{Afirmações.}  
+\begin{enumerate}[label=\Roman*.]
+\item A anonimização ou pseudonimização é recomendada quando possível.  
+\item O versionamento de datasets ajuda a garantir reprodutibilidade.  
+\item É permitido coletar qualquer dado, mesmo sem necessidade, pois é ambiente acadêmico.  
+\item Um dicionário de dados auxilia na clareza e comunicação entre a equipe.  
+\end{enumerate}
+
+\noindent\textbf{Pergunta.} Assinale a alternativa CORRETA:  
+\begin{enumerate}[label=\alph*)]
+\item V, V, F, V  
+\item V, F, V, F  
+\item F, V, F, V  
+\item V, V, V, F  
+\end{enumerate}
+
+\vfill
+
+% =========================
+% Q3 DISCURSIVA CURTA
+% =========================
+\newpage
+\noindent\textbf{Questão 28 — Arquitetura em Camadas (Discursiva — Curta)}  
+\par\noindent\textbf{Texto-base.}  
+Um protótipo foi construído apenas em notebooks soltos, sem organização. O professor solicitou reorganizar o projeto em \textbf{arquitetura em camadas}:  
+- \texttt{app/} (UI em Streamlit)  
+- \texttt{core/} (dados, features, modelos)  
+- \texttt{data/} (raw, processed, models)  
+- \texttt{docs/} (PMC, dicionário, decisões)  
+
+\noindent\textbf{Solicitação.}  
+Explique em até 10 linhas por que essa organização facilita manutenção, reprodutibilidade e aprendizado dos alunos.  
+
+
+
+% =========================
+% Q4 DISCURSIVA CURTA
+% =========================
+\newpage
+\noindent\textbf{Questão 29 — Deploy Local (Discursiva — Curta)}  
+\par\noindent\textbf{Texto-base.}  
+O laboratório possui internet instável e computadores heterogêneos. O professor orientou que o MVP fosse entregue de forma portátil, usando \texttt{venv}, \texttt{requirements.txt}, e mantendo os dados fora do repositório (com \texttt{.gitignore}).  
+
+\noindent\textbf{Solicitação.}  
+Explique em até 10 linhas como essa estratégia facilita o uso do sistema por diferentes alunos e protege os dados.  
+
+% =========================
+% Q5 DISCURSIVA MÉDIA
+% =========================
+\newpage
+\noindent\textbf{Questão 30 — Pipeline Reprodutível (Discursiva — Média)}  
+\par\noindent\textbf{Texto-base.}  
+Dois grupos treinaram modelos diferentes (Regressão Logística e Árvore de Decisão) e perceberam resultados inconsistentes, pois cada grupo pré-processou dados de forma diferente. O professor recomendou centralizar tudo em um \textbf{Pipeline com ColumnTransformer}, além de fixar \texttt{random\_state}.  
+
+\noindent\textbf{Solicitação.}  
+Explique em até 15 linhas como um pipeline reprodutível ajuda a evitar divergências, previne \textit{data leakage}, e facilita comparação de modelos.  
+
+
+
+
